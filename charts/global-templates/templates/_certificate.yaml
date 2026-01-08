@@ -80,7 +80,9 @@ spec:
   issuerRef:
     name: {{ include "helpers.renderGlobalIfExists" (dict "value" (required "issuerRef.name is required for Certificate" $certificate.issuerRef.name) "global" $global_values) }}
     kind: {{ $certificate.issuerRef.kind | default $default_values.issuerRef.kind }}
-    group: {{ $certificate.issuerRef.group | default $default_values.issuerRef.group }}
+    {{- with ($certificate.issuerRef.group | default $default_values.issuerRef.group) }}
+    group: {{ . }}
+    {{- end }}
   {{- if $certificate.keystores }}
   keystores:
     {{- toYaml $certificate.keystores | nindent 4 }}
