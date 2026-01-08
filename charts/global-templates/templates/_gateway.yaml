@@ -1,0 +1,83 @@
+{{/*
+Copyright (C) 2025 XM Cyber
+Author: Devops Infra Team
+*/}}
+
+{{- define "global-templates.gateway" -}}
+{{- $global_values := .Values.global }}
+{{- $default_values := .Values.gateway_defaults }}
+{{- $common_defaults := .Values.common_defaults | default dict }}
+{{- range .gateways }}
+{{- if not .disabled }}
+{{- $gateway := . }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: {{ required "Name is required for gateway" $gateway.name }}
+  namespace: {{ include "helpers.prefixNamespace" (dict "namespace" $gateway.namespace "global" $global_values) }}
+  labels: {{- include "helpers.labels" (dict "context" $ "customLabels" $gateway.labels "defaultLabels" $common_defaults.labels) | nindent 4 }}
+  {{- if or $gateway.annotations $common_defaults.annotations }}
+  annotations: {{ include "helpers.annotations" (dict "context" $ "customAnnotations" $gateway.annotations "defaultAnnotations" $common_defaults.annotations) | nindent 4 }}
+  {{- end }}
+spec:
+  gatewayClassName: {{ $gateway.gatewayClassName | default $default_values.gatewayClassName | default "envoy" }}
+  {{- if $gateway.addresses }}
+  addresses:
+    {{- range $gateway.addresses }}
+    - type: {{ .type | default "IPAddress" }}
+      value: {{ include "helpers.renderGlobalIfExists" (dict "value" .value "global" $global_values) }}
+    {{- end }}
+  {{- end }}
+  {{- if $gateway.listeners }}
+  listeners:
+    {{- range $gateway.listeners }}
+    - name: {{ required "Listener name is required" .name }}
+      protocol: {{ .protocol | default "HTTP" }}
+      port: {{ required "Listener port is required" .port }}
+      {{- if .hostname }}
+      hostname: {{ include "helpers.renderGlobalIfExists" (dict "value" .hostname "global" $global_values) | quote }}
+      {{- end }}
+      {{- if .tls }}
+      tls:
+        mode: {{ .tls.mode | default "Terminate" }}
+        {{- if .tls.certificateRefs }}
+        certificateRefs:
+          {{- range .tls.certificateRefs }}
+          - kind: {{ .kind | default "Secret" }}
+            name: {{ .name }}
+            {{- if .namespace }}
+            namespace: {{ include "helpers.prefixNamespace" (dict "namespace" .namespace "global" $global_values) }}
+            {{- end }}
+          {{- end }}
+        {{- end }}
+        {{- if .tls.options }}
+        options:
+          {{- toYaml .tls.options | nindent 10 }}
+        {{- end }}
+      {{- end }}
+      {{- if .allowedRoutes }}
+      allowedRoutes:
+        {{- if .allowedRoutes.namespaces }}
+        namespaces:
+          from: {{ .allowedRoutes.namespaces.from | default "Same" }}
+          {{- if .allowedRoutes.namespaces.selector }}
+          selector:
+            {{- toYaml .allowedRoutes.namespaces.selector | nindent 12 }}
+          {{- end }}
+        {{- end }}
+        {{- if .allowedRoutes.kinds }}
+        kinds:
+          {{- range .allowedRoutes.kinds }}
+          - kind: {{ .kind }}
+            {{- if .group }}
+            group: {{ .group }}
+            {{- end }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
