@@ -91,6 +91,11 @@ exports:
       ingressClassName: ingress-nginx-internal
       path: '/'
       
+    gateway_defaults:
+      gatewayClassName: envoy
+
+    httproute_defaults:
+
     sealedsecrets_defaults:
 
     roles_defaults:
@@ -108,3 +113,24 @@ exports:
       minAvailable: 1
       maxUnavailable: 1
       matchLabels: { }
+
+    servicemonitor_defaults:
+      interval: 30s
+      scrapeTimeout: 10s
+      path: /metrics
+
+    podmonitor_defaults:
+      interval: 30s
+      scrapeTimeout: 10s
+      path: /metrics
+
+    cnpgcluster_defaults:
+      instances: 3
+      imageName: "ghcr.io/cloudnative-pg/postgresql:18"
+      enableSuperuserAccess: true
+      storage:
+        size: "1Gi"
+
+    workflowtemplate_defaults:
+
+    backend_defaults:
