@@ -1,5 +1,4 @@
 {{- define "global-templates.servicemonitor" -}}
-{{- if .Capabilities.APIVersions.Has "monitoring.coreos.com/v1/ServiceMonitor" }}
 {{- $global_values := .Values.global }}
 {{- $default_values := .Values.servicemonitor_defaults }}
 {{- $common_defaults := .Values.common_defaults }}
@@ -53,7 +52,6 @@ spec:
       relabelings: {{- toYaml . | nindent 8 }}
       {{- end }}
     {{- end }}
-{{- end }}
 {{- end }}
 {{- end }}
 {{- end }}

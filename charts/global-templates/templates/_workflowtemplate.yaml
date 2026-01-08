@@ -4,7 +4,6 @@
 {{- $common_defaults := .Values.common_defaults }}
 {{- range .workflowtemplates }}
 {{- if not .disabled }}
-{{- if $.Capabilities.APIVersions.Has "argoproj.io/v1alpha1/WorkflowTemplate" }}
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
@@ -40,7 +39,6 @@ spec:
     {{- $_ := set $spec "volumes" $volumes }}
   {{- end }}
   {{- toYaml $spec | nindent 2 }}
-{{- end }}
 {{- end }}
 {{- end }}
 {{- end }}
