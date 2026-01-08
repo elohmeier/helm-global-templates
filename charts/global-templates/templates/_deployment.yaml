@@ -202,6 +202,23 @@ spec:
                 path: {{ .path }}
               {{- end }}
           {{- end }}
+          {{- if $value.hostPath }}
+          hostPath:
+            path: {{ include "helpers.renderGlobalIfExists" (dict "value" ($value.hostPath.path) "global" $global_values) }}
+            {{- if $value.hostPath.type }}
+            type: {{ $value.hostPath.type }}
+            {{- end }}
+          {{- end }}
+          {{- if $value.emptyDir }}
+          emptyDir: {{- toYaml $value.emptyDir | nindent 12 }}
+          {{- end }}
+          {{- if $value.persistentVolumeClaim }}
+          persistentVolumeClaim:
+            claimName: {{ include "helpers.renderGlobalIfExists" (dict "value" ($value.persistentVolumeClaim.claimName) "global" $global_values) }}
+            {{- if $value.persistentVolumeClaim.readOnly }}
+            readOnly: {{ $value.persistentVolumeClaim.readOnly }}
+            {{- end }}
+          {{- end }}
         {{- end }}
       {{- else }}
         {{- toYaml .volumes | nindent 8 }}
