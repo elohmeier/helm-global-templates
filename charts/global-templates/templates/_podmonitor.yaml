@@ -1,0 +1,53 @@
+{{- define "global-templates.podmonitor" -}}
+{{- if .Capabilities.APIVersions.Has "monitoring.coreos.com/v1/PodMonitor" }}
+{{- $global_values := .Values.global }}
+{{- $default_values := .Values.podmonitor_defaults }}
+{{- $common_defaults := .Values.common_defaults }}
+{{- range .podMonitors }}
+{{- if not .disabled }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: {{ .name | required "PodMonitor name required" }}
+  namespace: {{ include "helpers.prefixNamespace" (dict "namespace" .namespace "global" $global_values) }}
+  labels: {{ include "helpers.labels" (dict "context" $ "customLabels" .labels "defaultLabels" $common_defaults.labels) | nindent 4 }}
+  {{- if or .annotations $common_defaults.annotations }}
+  annotations: {{ include "helpers.annotations" (dict "context" $ "customAnnotations" .annotations "defaultAnnotations" $common_defaults.annotations) | nindent 4 }}
+  {{- end }}
+spec:
+  selector:
+    matchLabels: {{- toYaml .selector.matchLabels | nindent 6 }}
+  namespaceSelector:
+    {{- if .namespaceSelector }}
+    {{- toYaml .namespaceSelector | nindent 4 }}
+    {{- else }}
+    matchNames:
+      - {{ include "helpers.prefixNamespace" (dict "namespace" .namespace "global" $global_values) }}
+    {{- end }}
+  podMetricsEndpoints:
+    {{- range .podMetricsEndpoints }}
+    - port: {{ .port }}
+      {{- with .path | default $default_values.path }}
+      path: {{ . }}
+      {{- end }}
+      {{- with .interval | default $default_values.interval }}
+      interval: {{ . }}
+      {{- end }}
+      {{- with .scrapeTimeout | default $default_values.scrapeTimeout }}
+      scrapeTimeout: {{ . }}
+      {{- end }}
+      {{- with .scheme }}
+      scheme: {{ . }}
+      {{- end }}
+      {{- with .metricRelabelings }}
+      metricRelabelings: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .relabelings }}
+      relabelings: {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
