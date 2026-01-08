@@ -1,0 +1,46 @@
+{{- define "global-templates.workflowtemplate" -}}
+{{- $global_values := .Values.global}}
+{{- $default_values := .Values.workflowtemplate_defaults }}
+{{- $common_defaults := .Values.common_defaults }}
+{{- range .workflowtemplates }}
+{{- if not .disabled }}
+{{- if $.Capabilities.APIVersions.Has "argoproj.io/v1alpha1/WorkflowTemplate" }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: {{ .name | required "name is required" }}
+  namespace: {{ include "helpers.prefixNamespace" (dict "namespace" .namespace "global" $global_values) }}
+  labels: {{ include "helpers.labels" (dict "context" $ "customLabels" .labels "defaultLabels" $common_defaults.labels) | nindent 4 }}
+  {{- if or .annotations $common_defaults.annotations }}
+  annotations: {{ include "helpers.annotations" (dict "context" $ "customAnnotations" .annotations "defaultAnnotations" $common_defaults.annotations) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- $spec := deepCopy .spec }}
+  {{- if kindIs "map" $spec.templates }}
+    {{- $templates := list }}
+    {{- range $name, $template := $spec.templates }}
+      {{- $entry := deepCopy $template }}
+      {{- if not $entry.name }}
+        {{- $_ := set $entry "name" $name }}
+      {{- end }}
+      {{- $templates = append $templates $entry }}
+    {{- end }}
+    {{- $_ := set $spec "templates" $templates }}
+  {{- end }}
+  {{- if kindIs "map" $spec.volumes }}
+    {{- $volumes := list }}
+    {{- range $name, $volume := $spec.volumes }}
+      {{- $entry := deepCopy $volume }}
+      {{- if not $entry.name }}
+        {{- $_ := set $entry "name" $name }}
+      {{- end }}
+      {{- $volumes = append $volumes $entry }}
+    {{- end }}
+    {{- $_ := set $spec "volumes" $volumes }}
+  {{- end }}
+  {{- toYaml $spec | nindent 2 }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
