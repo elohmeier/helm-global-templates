@@ -33,13 +33,7 @@ Author: Devops Infra Team
 {{- else if hasKey . "valueFrom" }}
 - name: {{ .name }}
   valueFrom:
-    {{- range $refType, $refValue := .valueFrom }}
-    {{ $refType }}:
-      {{- range $field, $fieldValue := $refValue }}
-      {{- $renderedFieldValue := include "helpers.renderGlobalIfExists" (dict "value" $fieldValue "global" $global) }}
-      {{ $field }}: {{ $renderedFieldValue }}
-      {{- end }}
-    {{- end }}
+    {{- toYaml .valueFrom | nindent 4 }}
 {{- end }}
 {{- end }}
 {{- end }}
