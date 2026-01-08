@@ -1,0 +1,221 @@
+{{/*
+Copyright (C) 2025 XM Cyber
+Author: Devops Infra Team
+*/}}
+
+{{- define "global-templates.httproute" -}}
+{{- $global_values := .Values.global }}
+{{- $default_values := .Values.httproute_defaults }}
+{{- $common_defaults := .Values.common_defaults | default dict }}
+{{- range .httproutes }}
+{{- if not .disabled }}
+{{- $route := . }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ required "Name is required for httproute" $route.name }}
+  namespace: {{ include "helpers.prefixNamespace" (dict "namespace" $route.namespace "global" $global_values) }}
+  labels: {{- include "helpers.labels" (dict "context" $ "customLabels" $route.labels "defaultLabels" $common_defaults.labels) | nindent 4 }}
+  {{- if or $route.annotations $common_defaults.annotations }}
+  annotations: {{ include "helpers.annotations" (dict "context" $ "customAnnotations" $route.annotations "defaultAnnotations" $common_defaults.annotations) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if $route.parentRefs }}
+  parentRefs:
+    {{- range $route.parentRefs }}
+    - name: {{ required "parentRef name is required" .name }}
+      {{- if .namespace }}
+      namespace: {{ include "helpers.prefixNamespace" (dict "namespace" .namespace "global" $global_values) }}
+      {{- end }}
+      {{- if .sectionName }}
+      sectionName: {{ .sectionName }}
+      {{- end }}
+      {{- if .port }}
+      port: {{ .port }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+  {{- if $route.hostnames }}
+  hostnames:
+    {{- range $route.hostnames }}
+    - {{ include "helpers.renderGlobalIfExists" (dict "value" . "global" $global_values) | quote }}
+    {{- end }}
+  {{- end }}
+  {{- if $route.rules }}
+  rules:
+    {{- range $route.rules }}
+    - {{- if .matches }}
+      matches:
+        {{- range .matches }}
+        - {{- if .path }}
+          path:
+            type: {{ .path.type | default "PathPrefix" }}
+            value: {{ .path.value | default "/" }}
+          {{- end }}
+          {{- if .headers }}
+          headers:
+            {{- range .headers }}
+            - name: {{ .name }}
+              value: {{ .value }}
+              {{- if .type }}
+              type: {{ .type }}
+              {{- end }}
+            {{- end }}
+          {{- end }}
+          {{- if .queryParams }}
+          queryParams:
+            {{- range .queryParams }}
+            - name: {{ .name }}
+              value: {{ .value }}
+              {{- if .type }}
+              type: {{ .type }}
+              {{- end }}
+            {{- end }}
+          {{- end }}
+          {{- if .method }}
+          method: {{ .method }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+      {{- if .filters }}
+      filters:
+        {{- range .filters }}
+        - type: {{ .type }}
+          {{- if eq .type "RequestHeaderModifier" }}
+          requestHeaderModifier:
+            {{- if .requestHeaderModifier.set }}
+            set:
+              {{- range .requestHeaderModifier.set }}
+              - name: {{ .name }}
+                value: {{ .value }}
+              {{- end }}
+            {{- end }}
+            {{- if .requestHeaderModifier.add }}
+            add:
+              {{- range .requestHeaderModifier.add }}
+              - name: {{ .name }}
+                value: {{ .value }}
+              {{- end }}
+            {{- end }}
+            {{- if .requestHeaderModifier.remove }}
+            remove:
+              {{- toYaml .requestHeaderModifier.remove | nindent 14 }}
+            {{- end }}
+          {{- end }}
+          {{- if eq .type "ResponseHeaderModifier" }}
+          responseHeaderModifier:
+            {{- if .responseHeaderModifier.set }}
+            set:
+              {{- range .responseHeaderModifier.set }}
+              - name: {{ .name }}
+                value: {{ .value }}
+              {{- end }}
+            {{- end }}
+            {{- if .responseHeaderModifier.add }}
+            add:
+              {{- range .responseHeaderModifier.add }}
+              - name: {{ .name }}
+                value: {{ .value }}
+              {{- end }}
+            {{- end }}
+            {{- if .responseHeaderModifier.remove }}
+            remove:
+              {{- toYaml .responseHeaderModifier.remove | nindent 14 }}
+            {{- end }}
+          {{- end }}
+          {{- if eq .type "RequestRedirect" }}
+          requestRedirect:
+            {{- if .requestRedirect.scheme }}
+            scheme: {{ .requestRedirect.scheme }}
+            {{- end }}
+            {{- if .requestRedirect.hostname }}
+            hostname: {{ .requestRedirect.hostname }}
+            {{- end }}
+            {{- if .requestRedirect.port }}
+            port: {{ .requestRedirect.port }}
+            {{- end }}
+            {{- if .requestRedirect.statusCode }}
+            statusCode: {{ .requestRedirect.statusCode }}
+            {{- end }}
+            {{- if .requestRedirect.path }}
+            path:
+              type: {{ .requestRedirect.path.type }}
+              {{- if eq .requestRedirect.path.type "ReplaceFullPath" }}
+              replaceFullPath: {{ .requestRedirect.path.replaceFullPath }}
+              {{- end }}
+              {{- if eq .requestRedirect.path.type "ReplacePrefixMatch" }}
+              replacePrefixMatch: {{ .requestRedirect.path.replacePrefixMatch }}
+              {{- end }}
+            {{- end }}
+          {{- end }}
+          {{- if eq .type "URLRewrite" }}
+          urlRewrite:
+            {{- if .urlRewrite.hostname }}
+            hostname: {{ .urlRewrite.hostname }}
+            {{- end }}
+            {{- if .urlRewrite.path }}
+            path:
+              type: {{ .urlRewrite.path.type }}
+              {{- if eq .urlRewrite.path.type "ReplaceFullPath" }}
+              replaceFullPath: {{ .urlRewrite.path.replaceFullPath }}
+              {{- end }}
+              {{- if eq .urlRewrite.path.type "ReplacePrefixMatch" }}
+              replacePrefixMatch: {{ .urlRewrite.path.replacePrefixMatch }}
+              {{- end }}
+            {{- end }}
+          {{- end }}
+          {{- if eq .type "RequestMirror" }}
+          requestMirror:
+            backendRef:
+              name: {{ .requestMirror.backendRef.name }}
+              {{- if .requestMirror.backendRef.namespace }}
+              namespace: {{ .requestMirror.backendRef.namespace }}
+              {{- end }}
+              {{- if .requestMirror.backendRef.port }}
+              port: {{ .requestMirror.backendRef.port }}
+              {{- end }}
+          {{- end }}
+          {{- if eq .type "ExtensionRef" }}
+          extensionRef:
+            group: {{ .extensionRef.group }}
+            kind: {{ .extensionRef.kind }}
+            name: {{ .extensionRef.name }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+      {{- if .backendRefs }}
+      backendRefs:
+        {{- range .backendRefs }}
+        - name: {{ .name }}
+          {{- if .namespace }}
+          namespace: {{ include "helpers.prefixNamespace" (dict "namespace" .namespace "global" $global_values) }}
+          {{- end }}
+          {{- if .port }}
+          port: {{ .port }}
+          {{- end }}
+          {{- if .weight }}
+          weight: {{ .weight }}
+          {{- end }}
+          {{- if .kind }}
+          kind: {{ .kind }}
+          {{- end }}
+          {{- if .group }}
+          group: {{ .group }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+      {{- if .timeouts }}
+      timeouts:
+        {{- if .timeouts.request }}
+        request: {{ .timeouts.request }}
+        {{- end }}
+        {{- if .timeouts.backendRequest }}
+        backendRequest: {{ .timeouts.backendRequest }}
+        {{- end }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
