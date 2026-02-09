@@ -10,7 +10,6 @@ Author: Devops Infra Team
 {{- if not .disabled }}
 {{- $user := . }}
 {{- $namespace := include "helpers.namespace" (dict "ns" ($user.namespace | default "") "overrideNs" $.Release.Namespace) }}
-{{- $hasSpec := hasKey $user "spec" }}
 ---
 apiVersion: kafka.strimzi.io/v1beta2
 kind: KafkaUser
@@ -23,18 +22,7 @@ metadata:
     {{- include "helpers.annotations" (dict "context" $ "customAnnotations" $user.annotations "defaultAnnotations" $common_defaults.annotations) | nindent 4 }}
   {{- end }}
 spec:
-  {{- if $hasSpec }}
-  {{- include "common.tplvalues.render" (dict "value" $user.spec "context" $) | nindent 2 }}
-  {{- else }}
-  {{- if $user.authentication }}
-  authentication:
-    {{- include "common.tplvalues.render" (dict "value" $user.authentication "context" $) | nindent 4 }}
-  {{- end }}
-  {{- if $user.authorization }}
-  authorization:
-    {{- include "common.tplvalues.render" (dict "value" $user.authorization "context" $) | nindent 4 }}
-  {{- end }}
-  {{- end }}
+  {{- include "common.tplvalues.render" (dict "value" (required "spec is required for kafkauser" (omit $user "name" "namespace" "labels" "annotations" "disabled")) "context" $) | nindent 2 }}
 {{- end }}
 {{- end }}
 {{- end }}
