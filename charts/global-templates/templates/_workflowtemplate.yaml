@@ -38,6 +38,30 @@ spec:
     {{- end }}
     {{- $_ := set $spec "volumes" $volumes }}
   {{- end }}
+  {{- /* Convert container.env from map to list in each template */ -}}
+  {{- range $idx, $template := $spec.templates }}
+    {{- if and $template.container (kindIs "map" $template.container.env) }}
+      {{- $envArray := list }}
+      {{- range $key, $value := $template.container.env }}
+        {{- if kindIs "map" $value }}
+          {{- $envArray = append $envArray (dict "name" $key "valueFrom" $value.valueFrom) }}
+        {{- else }}
+          {{- $envArray = append $envArray (dict "name" $key "value" $value) }}
+        {{- end }}
+      {{- end }}
+      {{- $_ := set $template.container "env" $envArray }}
+    {{- end }}
+  {{- end }}
+  {{- /* Convert structured container.image to string in each template */ -}}
+  {{- range $idx, $template := $spec.templates }}
+    {{- if $template.container }}
+      {{- if kindIs "map" $template.container.image }}
+        {{- $img := $template.container.image }}
+        {{- $imageStr := printf "%s/%s:%s" ($img.registry | default "ghcr.io") $img.repository $img.tag }}
+        {{- $_ := set $template.container "image" $imageStr }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
   {{- toYaml $spec | nindent 2 }}
 {{- end }}
 {{- end }}
