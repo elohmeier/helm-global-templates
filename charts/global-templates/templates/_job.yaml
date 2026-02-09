@@ -1,6 +1,5 @@
 {{/*
-Copyright (C) 2026 XM Cyber
-Author: Devops Infra Team
+Job template for Helm hooks and one-time tasks
 */}}
 
 {{- define "global-templates.job" -}}
@@ -15,7 +14,7 @@ kind: Job
 metadata:
   name: {{ .name | default (include "common.names.fullname" $) }}
   namespace: {{ include "helpers.prefixNamespace" (dict "namespace" .namespace "global" $global_values) }}
-  labels: 
+  labels:
     {{- include "helpers.labels" (dict "context" $ "customLabels" .labels "defaultLabels" $common_defaults.labels) | nindent 4 }}
     app: {{ .name | default (include "common.names.fullname" $) }}
   {{- if or .annotations $common_defaults.annotations }}
@@ -62,52 +61,6 @@ spec:
         - name: {{ .name }}
         {{- end }}
       {{- end }}
-      {{- if .initContainers }}
-      initContainers:
-      {{- range .initContainers }}
-        - name: {{ include "helpers.renderGlobalIfExists" (dict "value" (required "Name is required for each init container" .name | quote) "global" $global_values) }}
-          image: {{ include "helpers.image.fullPath" (dict "container" . "global" $global_values) }}
-          imagePullPolicy: {{ include "helpers.renderGlobalIfExists" (dict "value" (.imagePullPolicy | default $default_values.imagePullPolicy) "global" $global_values) }}
-          {{- if .command }}
-          command: {{- include "common.tplvalues.render" (dict "value" .command "context" $) | nindent 12 }}
-          {{- end }}
-          {{- if .args }}
-          args: {{- include "common.tplvalues.render" (dict "value" .args "context" $) | nindent 12 }}
-          {{- end }}
-          {{- if .env }}
-          env: {{- include "helpers.toEnvArray" (dict "container" . "global" $global_values "context" $) | indent 12 }}
-          {{- end }}
-          {{- if .envFrom }}
-          envFrom:
-          {{- range .envFrom }}
-          {{- if .configMapRef }}
-          - configMapRef:
-              name: {{ include "helpers.renderGlobalIfExists" (dict "value" (.configMapRef.name | quote) "global" $global_values) }}
-          {{- end }}
-          {{- if .secretRef }}
-          - secretRef:
-              name: {{ include "helpers.renderGlobalIfExists" (dict "value" (.secretRef.name | quote) "global" $global_values) }}
-          {{- end }}
-          {{- end }}
-          {{- end }}
-          {{- if .volumeMounts }}
-          volumeMounts:
-            {{- range .volumeMounts }}
-            - name: {{ include "helpers.renderGlobalIfExists" (dict "value" (.name) "global" $global_values) }}
-              mountPath: {{ include "helpers.renderGlobalIfExists" (dict "value" (.mountPath) "global" $global_values) }}
-              {{- if .subPath }}
-              subPath: {{ include "helpers.renderGlobalIfExists" (dict "value" (.subPath) "global" $global_values) }}
-              {{- end }}
-              {{- if .readOnly }}
-              readOnly: {{ .readOnly }}
-              {{- end }}
-            {{- end }}
-          {{- end }}
-          {{- if .resources }}
-          resources: {{ .resources | toYaml | nindent 12 }}
-          {{- end }}
-      {{- end }}
-      {{- end }}
       containers:
       {{- range .containers }}
         - name: {{ include "helpers.renderGlobalIfExists" (dict "value" (required "Name is required for each container" .name | quote) "global" $global_values) }}
@@ -130,11 +83,11 @@ spec:
           {{- range .envFrom }}
             {{- if .configMapRef }}
             - configMapRef:
-                name: {{ include "helpers.renderGlobalIfExists" (dict "value" (.configMapRef.name | quote) "global" $global_values) }}     
+                name: {{ include "helpers.renderGlobalIfExists" (dict "value" (.configMapRef.name | quote) "global" $global_values) }}
             {{- end }}
             {{- if .secretRef }}
             - secretRef:
-                name: {{ include "helpers.renderGlobalIfExists" (dict "value" (.secretRef.name | quote) "global" $global_values) }}     
+                name: {{ include "helpers.renderGlobalIfExists" (dict "value" (.secretRef.name | quote) "global" $global_values) }}
             {{- end }}
           {{- end }}
           {{- end }}
@@ -155,21 +108,6 @@ spec:
           {{- else }}
             {{- toYaml .volumeMounts | nindent 12 }}
           {{- end }}
-          {{- end }}
-          {{- if .ports }}
-          ports: {{- include "common.tplvalues.render" (dict "value" .ports "context" $) | nindent 12 }}
-          {{- end }}
-          {{- if .livenessProbe }}
-          livenessProbe: {{- include "common.tplvalues.render" (dict "value" .livenessProbe "context" $) | nindent 12 }}
-          {{- end }}
-          {{- if .readinessProbe }}
-          readinessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .readinessProbe "enabled") "context" $) | nindent 12 }}
-          {{- end }}
-          {{- if .startupProbe }}
-          startupProbe: {{- include "common.tplvalues.render" (dict "value" (omit .startupProbe "enabled") "context" $) | nindent 12 }}
-          {{- end }}
-          {{- if .lifecycle }}
-          lifecycle: {{- include "common.tplvalues.render" (dict "value" .lifecycle "context" $) | nindent 12 }}
           {{- end }}
       {{- end }}
       {{- if .volumes }}
@@ -196,40 +134,47 @@ spec:
                 path: {{ .path }}
               {{- end }}
           {{- end }}
+          {{- if $value.emptyDir }}
+          emptyDir: {}
+          {{- end }}
+          {{- if $value.hostPath }}
+          hostPath:
+            path: {{ include "helpers.renderGlobalIfExists" (dict "value" ($value.hostPath.path) "global" $global_values) }}
+            {{- if $value.hostPath.type }}
+            type: {{ $value.hostPath.type }}
+            {{- end }}
+          {{- end }}
+          {{- if $value.persistentVolumeClaim }}
+          persistentVolumeClaim:
+            claimName: {{ include "helpers.renderGlobalIfExists" (dict "value" ($value.persistentVolumeClaim.claimName) "global" $global_values) }}
+          {{- end }}
+          {{- if $value.image }}
+          image:
+            reference: {{ include "helpers.renderGlobalIfExists" (dict "value" ($value.image.reference) "global" $global_values) }}
+            {{- if $value.image.pullPolicy }}
+            pullPolicy: {{ $value.image.pullPolicy }}
+            {{- end }}
+          {{- end }}
         {{- end }}
       {{- else }}
         {{- toYaml .volumes | nindent 8 }}
       {{- end }}
       {{- end }}
-      {{- if .hostAliases }}
-      hostAliases: {{- include "common.tplvalues.render" (dict "value" .hostAliases "context" $) | nindent 8 }}
-      {{- end }}
       {{- if .affinity }}
       affinity: {{- include "common.tplvalues.render" ( dict "value" .affinity "context" $) | nindent 8 }}
-      {{- else if or .podAffinityPreset .podAntiAffinityPreset $default_values.nodeAffinityPreset.type }}
-      affinity:
-        {{- if not (empty .podAffinityPreset) }}
-        podAffinity: {{- include "common.affinities.pods" (dict "type" .podAffinityPreset "context" $) | nindent 10 }}
-        {{- end }}
-        {{- if not (empty .podAntiAffinityPreset) }}
-        podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .podAntiAffinityPreset "context" $) | nindent 10 }}
-        {{- end }}
-        {{- if not (empty $default_values.nodeAffinityPreset.type) }}
-        nodeAffinity: {{- include "common.affinities.nodes" (dict "type" $default_values.nodeAffinityPreset.type "key" $default_values.nodeAffinityPreset.key "values" $default_values.nodeAffinityPreset.values) | nindent 10 }}
-        {{- end }}
       {{- end }}
       {{- if .nodeSelector }}
       nodeSelector: {{- include "common.tplvalues.render" (dict "value" .nodeSelector "context" $) | nindent 8 }}
       {{- end }}
       {{- if .tolerations }}
-      tolerations: 
+      tolerations:
       {{- range .tolerations }}
-        - key: {{ include "helpers.renderGlobalIfExists" (dict "value" (required "Key is required for each toleration" .key | quote) "global" $global_values) }}     
+        - key: {{ include "helpers.renderGlobalIfExists" (dict "value" (required "Key is required for each toleration" .key | quote) "global" $global_values) }}
           {{- if .operator }}
           operator: {{ .operator | quote }}
           {{- end }}
-          value: {{ include "helpers.renderGlobalIfExists" (dict "value" (required "Value is required for each toleration" .value | quote) "global" $global_values) }}     
-          {{- if .effect }}  
+          value: {{ include "helpers.renderGlobalIfExists" (dict "value" (required "Value is required for each toleration" .value | quote) "global" $global_values) }}
+          {{- if .effect }}
           effect: {{ .effect | quote }}
           {{- end }}
           {{- if .tolerationSeconds }}
@@ -237,20 +182,8 @@ spec:
           {{- end }}
       {{- end }}
       {{- end }}
-      {{- if .priorityClassName }}
-      priorityClassName: {{ .priorityClassName | quote }}
-      {{- end }}
-      {{- if .topologySpreadConstraints }}
-      topologySpreadConstraints: {{- include "common.tplvalues.render" (dict "value" .topologySpreadConstraints "context" $) | nindent 8 }}
-      {{- end }}
-      {{- if .schedulerName }}
-      schedulerName: {{ .schedulerName | quote }}
-      {{- end }}
       {{- if .securityContext }}
       securityContext: {{- .securityContext | toYaml | nindent 8 }}
-      {{- end }}
-      {{- if .terminationGracePeriodSeconds }}
-      terminationGracePeriodSeconds: {{ .terminationGracePeriodSeconds }}
       {{- end }}
 {{- end }}
 {{- end }}
