@@ -166,4 +166,16 @@ exports:
 
     kafkamirrormaker2_defaults:
 
+    hostrule_defaults:
+
+    httprule_defaults:
+
+    l7rule_defaults:
+
+    ssorule_defaults:
+
+    l4rule_defaults:
+
+    aviinfrasetting_defaults:
+
     networkpolicy_defaults:

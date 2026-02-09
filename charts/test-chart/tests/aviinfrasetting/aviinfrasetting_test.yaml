@@ -1,0 +1,77 @@
+suite: Test aviinfrasetting template
+templates:
+  - template.yaml
+
+tests:
+  - it: should create basic aviinfrasetting correctly
+    values:
+      - aviinfrasetting_values.yaml
+    asserts:
+      - equal:
+          path: kind
+          value: AviInfraSetting
+      - equal:
+          path: apiVersion
+          value: ako.vmware.com/v1beta1
+      - equal:
+          path: metadata.name
+          value: test-aviinfrasetting
+      - isNull:
+          path: metadata.namespace
+      - equal:
+          path: spec.seGroup.name
+          value: Default-Group
+
+  - it: should not render aviinfrasetting if disabled
+    values:
+      - aviinfrasetting_values.yaml
+    set:
+      aviinfrasettings.test-aviinfrasetting.disabled: true
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should set labels correctly
+    values:
+      - aviinfrasetting_values.yaml
+    set:
+      aviinfrasettings.test-aviinfrasetting.labels:
+        custom-label: test-value
+    asserts:
+      - equal:
+          path: metadata.labels["custom-label"]
+          value: test-value
+
+  - it: should set annotations correctly
+    values:
+      - aviinfrasetting_values.yaml
+    set:
+      aviinfrasettings.test-aviinfrasetting.annotations:
+        test-annotation: test-value
+    asserts:
+      - equal:
+          path: metadata.annotations["test-annotation"]
+          value: test-value
+
+  - it: should render global placeholders in spec
+    set:
+      global:
+        infra:
+          seGroup: Custom-SE-Group
+      aviinfrasettings:
+        - name: test-aviinfrasetting
+          seGroup:
+            name: "{{global.infra.seGroup}}"
+    asserts:
+      - equal:
+          path: spec.seGroup.name
+          value: Custom-SE-Group
+
+  - it: should fail without name
+    set:
+      aviinfrasettings:
+        - seGroup:
+            name: Default-Group
+    asserts:
+      - failedTemplate:
+          errorMessage: "Name is required for aviinfrasetting"

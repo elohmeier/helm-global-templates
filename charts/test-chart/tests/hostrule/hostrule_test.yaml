@@ -1,0 +1,80 @@
+suite: Test hostrule template
+templates:
+  - template.yaml
+
+tests:
+  - it: should create basic hostrule correctly
+    values:
+      - hostrule_values.yaml
+    asserts:
+      - equal:
+          path: kind
+          value: HostRule
+      - equal:
+          path: apiVersion
+          value: ako.vmware.com/v1beta1
+      - equal:
+          path: metadata.name
+          value: test-hostrule
+      - equal:
+          path: metadata.namespace
+          value: test-namespace
+      - equal:
+          path: spec.virtualhost.fqdn
+          value: test.example.com
+
+  - it: should not render hostrule if disabled
+    values:
+      - hostrule_values.yaml
+    set:
+      hostrules.test-hostrule.disabled: true
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should set labels correctly
+    values:
+      - hostrule_values.yaml
+    set:
+      hostrules.test-hostrule.labels:
+        custom-label: test-value
+    asserts:
+      - equal:
+          path: metadata.labels["custom-label"]
+          value: test-value
+
+  - it: should set annotations correctly
+    values:
+      - hostrule_values.yaml
+    set:
+      hostrules.test-hostrule.annotations:
+        test-annotation: test-value
+    asserts:
+      - equal:
+          path: metadata.annotations["test-annotation"]
+          value: test-value
+
+  - it: should render global placeholders in spec
+    set:
+      global:
+        app:
+          fqdn: global.example.com
+      hostrules:
+        - name: test-hostrule
+          namespace: test-namespace
+          virtualhost:
+            fqdn: "{{global.app.fqdn}}"
+    asserts:
+      - equal:
+          path: spec.virtualhost.fqdn
+          value: global.example.com
+
+  - it: should fail without name
+    set:
+      hostrules:
+        - namespace: test-namespace
+          virtualhost:
+            fqdn: test.example.com
+    asserts:
+      - failedTemplate:
+          errorMessage: "Name is required for hostrule"

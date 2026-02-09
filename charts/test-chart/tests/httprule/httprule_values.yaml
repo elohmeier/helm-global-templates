@@ -1,0 +1,11 @@
+httprules:
+  test-httprule:
+    name: test-httprule
+    namespace: test-namespace
+    fqdn: test.example.com
+    paths:
+      - target: /api
+        healthMonitors:
+          - test-hm
+        loadBalancerPolicy:
+          algorithm: LB_ALGORITHM_CONSISTENT_HASH

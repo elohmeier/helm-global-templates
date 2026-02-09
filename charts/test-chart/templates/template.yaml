@@ -35,3 +35,9 @@
 {{ include "global-templates.probe" (dict "probes" .Values.probes "Chart" .Chart "Release" .Release "Capabilities" .Capabilities "Files" .Files "Template" .Template "Values" .Values) }}
 {{ include "global-templates.alertmanagerconfig" (dict "alertmanagerConfigs" .Values.alertmanagerConfigs "Chart" .Chart "Release" .Release "Capabilities" .Capabilities "Files" .Files "Template" .Template "Values" .Values) }}
 {{ include "global-templates.vmservicescrape" (dict "vmServiceScrapes" .Values.vmServiceScrapes "Chart" .Chart "Release" .Release "Capabilities" .Capabilities "Files" .Files "Template" .Template "Values" .Values) }}
+{{ include "global-templates.hostrule" (dict "hostrules" .Values.hostrules "Chart" .Chart "Release" .Release "Capabilities" .Capabilities "Files" .Files "Template" .Template "Values" .Values) }}
+{{ include "global-templates.httprule" (dict "httprules" .Values.httprules "Chart" .Chart "Release" .Release "Capabilities" .Capabilities "Files" .Files "Template" .Template "Values" .Values) }}
+{{ include "global-templates.l7rule" (dict "l7rules" .Values.l7rules "Chart" .Chart "Release" .Release "Capabilities" .Capabilities "Files" .Files "Template" .Template "Values" .Values) }}
+{{ include "global-templates.ssorule" (dict "ssorules" .Values.ssorules "Chart" .Chart "Release" .Release "Capabilities" .Capabilities "Files" .Files "Template" .Template "Values" .Values) }}
+{{ include "global-templates.l4rule" (dict "l4rules" .Values.l4rules "Chart" .Chart "Release" .Release "Capabilities" .Capabilities "Files" .Files "Template" .Template "Values" .Values) }}
+{{ include "global-templates.aviinfrasetting" (dict "aviinfrasettings" .Values.aviinfrasettings "Chart" .Chart "Release" .Release "Capabilities" .Capabilities "Files" .Files "Template" .Template "Values" .Values) }}
