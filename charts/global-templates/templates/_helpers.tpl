@@ -33,7 +33,7 @@ Author: Devops Infra Team
 {{- else if hasKey . "valueFrom" }}
 - name: {{ .name }}
   valueFrom:
-    {{- toYaml .valueFrom | nindent 4 }}
+    {{- include "helpers.renderGlobalIfExists" (dict "value" (toYaml .valueFrom) "global" $global) | nindent 4 }}
 {{- end }}
 {{- end }}
 {{- end }}
