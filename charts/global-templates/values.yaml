@@ -96,6 +96,8 @@ exports:
 
     httproute_defaults:
 
+    route_defaults:
+
     sealedsecrets_defaults:
 
     roles_defaults:

@@ -1,0 +1,9 @@
+routes:
+  my-route:
+    name: my-route
+    namespace: test-namespace
+    host: app.example.com
+    to:
+      name: my-service
+    port:
+      targetPort: 8080

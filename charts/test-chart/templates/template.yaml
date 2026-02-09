@@ -41,3 +41,4 @@
 {{ include "global-templates.ssorule" (dict "ssorules" .Values.ssorules "Chart" .Chart "Release" .Release "Capabilities" .Capabilities "Files" .Files "Template" .Template "Values" .Values) }}
 {{ include "global-templates.l4rule" (dict "l4rules" .Values.l4rules "Chart" .Chart "Release" .Release "Capabilities" .Capabilities "Files" .Files "Template" .Template "Values" .Values) }}
 {{ include "global-templates.aviinfrasetting" (dict "aviinfrasettings" .Values.aviinfrasettings "Chart" .Chart "Release" .Release "Capabilities" .Capabilities "Files" .Files "Template" .Template "Values" .Values) }}
+{{ include "global-templates.route" (dict "routes" .Values.routes "Chart" .Chart "Release" .Release "Capabilities" .Capabilities "Files" .Files "Template" .Template "Values" .Values) }}
