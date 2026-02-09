@@ -1,0 +1,83 @@
+{{- define "global-templates.route" -}}
+{{- $global_values := .Values.global }}
+{{- $default_values := .Values.route_defaults }}
+{{- $common_defaults := .Values.common_defaults | default dict }}
+{{- range $name, $route := .routes }}
+{{- if not $route.disabled }}
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ $route.name | default $name }}
+  namespace: {{ include "helpers.prefixNamespace" (dict "namespace" $route.namespace "global" $global_values) }}
+  labels: {{- include "helpers.labels" (dict "context" $ "customLabels" $route.labels "defaultLabels" $common_defaults.labels) | nindent 4 }}
+  {{- if or $route.annotations $common_defaults.annotations }}
+  annotations: {{ include "helpers.annotations" (dict "context" $ "customAnnotations" $route.annotations "defaultAnnotations" $common_defaults.annotations) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if $route.host }}
+  host: {{ include "helpers.renderGlobalIfExists" (dict "value" $route.host "global" $global_values) | quote }}
+  {{- end }}
+  {{- if $route.subdomain }}
+  subdomain: {{ include "helpers.renderGlobalIfExists" (dict "value" $route.subdomain "global" $global_values) | quote }}
+  {{- end }}
+  {{- if $route.path }}
+  path: {{ $route.path }}
+  {{- end }}
+  {{- if $route.port }}
+  port:
+    targetPort: {{ $route.port.targetPort }}
+  {{- end }}
+  to:
+    kind: {{ $route.to.kind | default "Service" }}
+    name: {{ required "to.name is required for route" $route.to.name }}
+    {{- if $route.to.weight }}
+    weight: {{ $route.to.weight }}
+    {{- end }}
+  {{- if $route.wildcardPolicy }}
+  wildcardPolicy: {{ $route.wildcardPolicy }}
+  {{- end }}
+  {{- if $route.alternateBackends }}
+  alternateBackends:
+    {{- range $route.alternateBackends }}
+    - kind: {{ .kind | default "Service" }}
+      name: {{ required "alternateBackend name is required" .name }}
+      {{- if .weight }}
+      weight: {{ .weight }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+  {{- if $route.tls }}
+  tls:
+    termination: {{ required "tls.termination is required when tls is specified" $route.tls.termination }}
+    {{- if $route.tls.insecureEdgeTerminationPolicy }}
+    insecureEdgeTerminationPolicy: {{ $route.tls.insecureEdgeTerminationPolicy }}
+    {{- end }}
+    {{- if $route.tls.certificate }}
+    certificate: |
+      {{- $route.tls.certificate | nindent 6 }}
+    {{- end }}
+    {{- if $route.tls.key }}
+    key: |
+      {{- $route.tls.key | nindent 6 }}
+    {{- end }}
+    {{- if $route.tls.caCertificate }}
+    caCertificate: |
+      {{- $route.tls.caCertificate | nindent 6 }}
+    {{- end }}
+    {{- if $route.tls.destinationCACertificate }}
+    destinationCACertificate: |
+      {{- $route.tls.destinationCACertificate | nindent 6 }}
+    {{- end }}
+    {{- if $route.tls.externalCertificate }}
+    externalCertificate:
+      name: {{ $route.tls.externalCertificate.name }}
+    {{- end }}
+  {{- end }}
+  {{- if $route.httpHeaders }}
+  httpHeaders:
+    {{- toYaml $route.httpHeaders | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

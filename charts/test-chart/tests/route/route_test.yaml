@@ -1,0 +1,327 @@
+suite: Test route template
+templates:
+  - template.yaml
+
+tests:
+  - it: should create basic route correctly
+    values:
+      - route_values.yaml
+    asserts:
+      - equal:
+          path: kind
+          value: Route
+      - equal:
+          path: apiVersion
+          value: route.openshift.io/v1
+      - equal:
+          path: metadata.name
+          value: my-route
+      - equal:
+          path: metadata.namespace
+          value: test-namespace
+      - equal:
+          path: spec.host
+          value: app.example.com
+      - equal:
+          path: spec.to.kind
+          value: Service
+      - equal:
+          path: spec.to.name
+          value: my-service
+      - equal:
+          path: spec.port.targetPort
+          value: 8080
+
+  - it: should default name from map key
+    values:
+      - route_values.yaml
+    set:
+      routes.my-route.name: null
+    asserts:
+      - equal:
+          path: metadata.name
+          value: my-route
+
+  - it: should render global placeholder in host
+    values:
+      - route_values.yaml
+    set:
+      global.app.fqdn: global.example.com
+      routes.my-route.host: "{{global.app.fqdn}}"
+    asserts:
+      - equal:
+          path: spec.host
+          value: global.example.com
+
+  - it: should render subdomain
+    values:
+      - route_values.yaml
+    set:
+      routes.my-route.subdomain: myapp
+    asserts:
+      - equal:
+          path: spec.subdomain
+          value: myapp
+
+  - it: should render subdomain with global placeholder
+    values:
+      - route_values.yaml
+    set:
+      global.app.subdomain: myapp
+      routes.my-route.subdomain: "{{global.app.subdomain}}"
+    asserts:
+      - equal:
+          path: spec.subdomain
+          value: myapp
+
+  - it: should render path
+    values:
+      - route_values.yaml
+    set:
+      routes.my-route.path: /api
+    asserts:
+      - equal:
+          path: spec.path
+          value: /api
+
+  - it: should render named targetPort
+    values:
+      - route_values.yaml
+    set:
+      routes.my-route.port.targetPort: https
+    asserts:
+      - equal:
+          path: spec.port.targetPort
+          value: https
+
+  - it: should default to.kind to Service
+    values:
+      - route_values.yaml
+    asserts:
+      - equal:
+          path: spec.to.kind
+          value: Service
+
+  - it: should fail without to.name
+    set:
+      routes:
+        bad-route:
+          namespace: test-namespace
+          to:
+            kind: Service
+    asserts:
+      - failedTemplate:
+          errorMessage: "to.name is required for route"
+
+  - it: should render custom to.weight
+    values:
+      - route_values.yaml
+    set:
+      routes.my-route.to.weight: 80
+    asserts:
+      - equal:
+          path: spec.to.weight
+          value: 80
+
+  - it: should not render to.weight when not set
+    values:
+      - route_values.yaml
+    asserts:
+      - notExists:
+          path: spec.to.weight
+
+  - it: should render wildcardPolicy override
+    values:
+      - route_values.yaml
+    set:
+      routes.my-route.wildcardPolicy: Subdomain
+    asserts:
+      - equal:
+          path: spec.wildcardPolicy
+          value: Subdomain
+
+  - it: should not render wildcardPolicy when not set
+    values:
+      - route_values.yaml
+    asserts:
+      - notExists:
+          path: spec.wildcardPolicy
+
+  - it: should render alternateBackends
+    values:
+      - route_values.yaml
+    set:
+      routes.my-route.alternateBackends:
+        - name: canary-service
+          weight: 20
+        - name: other-service
+          kind: Service
+          weight: 10
+    asserts:
+      - equal:
+          path: spec.alternateBackends[0].kind
+          value: Service
+      - equal:
+          path: spec.alternateBackends[0].name
+          value: canary-service
+      - equal:
+          path: spec.alternateBackends[0].weight
+          value: 20
+      - equal:
+          path: spec.alternateBackends[1].name
+          value: other-service
+      - equal:
+          path: spec.alternateBackends[1].weight
+          value: 10
+
+  - it: should render edge TLS termination
+    values:
+      - route_values.yaml
+    set:
+      routes.my-route.tls:
+        termination: edge
+        insecureEdgeTerminationPolicy: Redirect
+    asserts:
+      - equal:
+          path: spec.tls.termination
+          value: edge
+      - equal:
+          path: spec.tls.insecureEdgeTerminationPolicy
+          value: Redirect
+
+  - it: should render passthrough TLS termination
+    values:
+      - route_values.yaml
+    set:
+      routes.my-route.tls:
+        termination: passthrough
+    asserts:
+      - equal:
+          path: spec.tls.termination
+          value: passthrough
+
+  - it: should render reencrypt TLS with destinationCACertificate
+    values:
+      - route_values.yaml
+    set:
+      routes.my-route.tls:
+        termination: reencrypt
+        destinationCACertificate: |
+          -----BEGIN CERTIFICATE-----
+          MIIC...
+          -----END CERTIFICATE-----
+    asserts:
+      - equal:
+          path: spec.tls.termination
+          value: reencrypt
+      - exists:
+          path: spec.tls.destinationCACertificate
+
+  - it: should render externalCertificate
+    values:
+      - route_values.yaml
+    set:
+      routes.my-route.tls:
+        termination: edge
+        externalCertificate:
+          name: my-cert-secret
+    asserts:
+      - equal:
+          path: spec.tls.externalCertificate.name
+          value: my-cert-secret
+
+  - it: should fail when tls is set without termination
+    set:
+      routes:
+        bad-route:
+          namespace: test-namespace
+          to:
+            name: my-service
+          tls:
+            insecureEdgeTerminationPolicy: Redirect
+    asserts:
+      - failedTemplate:
+          errorMessage: "tls.termination is required when tls is specified"
+
+  - it: should not render route if disabled
+    values:
+      - route_values.yaml
+    set:
+      routes.my-route.disabled: true
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should set annotations correctly
+    values:
+      - route_values.yaml
+    set:
+      routes.my-route.annotations:
+        haproxy.router.openshift.io/timeout: 60s
+    asserts:
+      - equal:
+          path: metadata.annotations["haproxy.router.openshift.io/timeout"]
+          value: 60s
+
+  - it: should render global placeholders in annotations
+    values:
+      - route_values.yaml
+    set:
+      global:
+        router:
+          timeout: "120s"
+      routes.my-route.annotations:
+        haproxy.router.openshift.io/timeout: "{{global.router.timeout}}"
+    asserts:
+      - equal:
+          path: metadata.annotations["haproxy.router.openshift.io/timeout"]
+          value: 120s
+
+  - it: should render httpHeaders
+    values:
+      - route_values.yaml
+    set:
+      routes.my-route.httpHeaders:
+        actions:
+          response:
+            - name: X-Frame-Options
+              action:
+                type: Set
+                set:
+                  value: DENY
+    asserts:
+      - equal:
+          path: spec.httpHeaders.actions.response[0].name
+          value: X-Frame-Options
+
+  - it: should prefix namespace with nsPrefix
+    values:
+      - route_values.yaml
+    set:
+      global.nsPrefix: myprefix
+    asserts:
+      - equal:
+          path: metadata.namespace
+          value: myprefix-test-namespace
+
+  - it: should not render host when not set
+    set:
+      routes:
+        no-host-route:
+          namespace: test-namespace
+          to:
+            name: my-service
+    asserts:
+      - notExists:
+          path: spec.host
+
+  - it: should set custom labels
+    values:
+      - route_values.yaml
+    set:
+      routes.my-route.labels:
+        custom-label: test-value
+    asserts:
+      - equal:
+          path: metadata.labels["custom-label"]
+          value: test-value
