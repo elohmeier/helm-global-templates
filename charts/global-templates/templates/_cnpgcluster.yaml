@@ -18,6 +18,10 @@ spec:
   instances: {{ .instances | default $default_values.instances }}
   imageName: {{ .imageName | default $default_values.imageName }}
   enableSuperuserAccess: {{ .enableSuperuserAccess | default $default_values.enableSuperuserAccess }}
+  {{- if .superuserSecret }}
+  superuserSecret:
+    name: {{ .superuserSecret.name }}
+  {{- end }}
   bootstrap:
     initdb:
       database: {{ .bootstrap.initdb.database }}
@@ -39,6 +43,10 @@ spec:
     parameters:
       {{- toYaml .postgresql.parameters | nindent 6 }}
     {{- end }}
+  {{- end }}
+  {{- if .resources }}
+  resources:
+    {{- toYaml .resources | nindent 4 }}
   {{- end }}
   storage:
     size: {{ .storage.size | default $default_values.storage.size }}
