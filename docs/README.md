@@ -17,6 +17,11 @@
 - [ServiceAccount](https://github.com/XMCyber/helm-global-templates/blob/master/docs/resources/serviceaccount.md)
 - [SealedSecret](https://github.com/XMCyber/helm-global-templates/blob/master/docs/resources/sealedsecret.md)
 - [PDB](https://github.com/XMCyber/helm-global-templates/blob/master/docs/resources/pdb.md)
+- [ServiceMonitor](https://github.com/XMCyber/helm-global-templates/blob/master/docs/resources/servicemonitor.md)
+- [PodMonitor](https://github.com/XMCyber/helm-global-templates/blob/master/docs/resources/podmonitor.md)
+- [PrometheusRule](https://github.com/XMCyber/helm-global-templates/blob/master/docs/resources/prometheusrule.md)
+- [Probe](https://github.com/XMCyber/helm-global-templates/blob/master/docs/resources/probe.md)
+- [AlertmanagerConfig](https://github.com/XMCyber/helm-global-templates/blob/master/docs/resources/alertmanagerconfig.md)
 
 > **Note:** If you need a resource that is not listed here, feel free to open an issue or a pull request. we prefer pull requests :)
 

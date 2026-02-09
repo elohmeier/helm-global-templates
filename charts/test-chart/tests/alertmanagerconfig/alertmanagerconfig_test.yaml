@@ -1,0 +1,143 @@
+suite: Test alertmanagerconfig template
+templates:
+  - template.yaml
+
+tests:
+  - it: should create basic AlertmanagerConfig correctly
+    values:
+      - alertmanagerconfig_values.yaml
+    asserts:
+      - equal:
+          path: kind
+          value: AlertmanagerConfig
+      - equal:
+          path: apiVersion
+          value: monitoring.coreos.com/v1beta1
+      - equal:
+          path: metadata.name
+          value: test-alertmanagerconfig
+      - equal:
+          path: metadata.namespace
+          value: test-namespace
+
+  - it: should not render AlertmanagerConfig if disabled
+    values:
+      - alertmanagerconfig_values.yaml
+    set:
+      alertmanagerConfigs.test-amc.disabled: true
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should set route correctly
+    values:
+      - alertmanagerconfig_values.yaml
+    asserts:
+      - equal:
+          path: spec.route.receiver
+          value: default
+      - equal:
+          path: spec.route.groupBy[0]
+          value: alertname
+      - equal:
+          path: spec.route.groupBy[1]
+          value: namespace
+
+  - it: should set route with nested routes
+    values:
+      - alertmanagerconfig_values.yaml
+    asserts:
+      - equal:
+          path: spec.route.routes[0].receiver
+          value: critical
+      - equal:
+          path: spec.route.routes[0].matchers[0].name
+          value: severity
+      - equal:
+          path: spec.route.routes[0].matchers[0].value
+          value: critical
+
+  - it: should set receivers correctly
+    values:
+      - alertmanagerconfig_values.yaml
+    asserts:
+      - equal:
+          path: spec.receivers[0].name
+          value: default
+      - equal:
+          path: spec.receivers[0].webhookConfigs[0].url
+          value: "http://webhook.example.com/alerts"
+      - equal:
+          path: spec.receivers[1].name
+          value: critical
+
+  - it: should set inhibitRules
+    set:
+      alertmanagerConfigs:
+        test-amc:
+          name: test-alertmanagerconfig
+          namespace: test-namespace
+          route:
+            receiver: default
+          receivers:
+            - name: default
+              webhookConfigs:
+                - url: http://webhook.example.com/alerts
+          inhibitRules:
+            - sourceMatch:
+                - name: severity
+                  value: critical
+              targetMatch:
+                - name: severity
+                  value: warning
+              equal:
+                - alertname
+                - namespace
+    asserts:
+      - equal:
+          path: spec.inhibitRules[0].sourceMatch[0].name
+          value: severity
+      - equal:
+          path: spec.inhibitRules[0].equal[0]
+          value: alertname
+
+  - it: should set timeIntervals
+    set:
+      alertmanagerConfigs:
+        test-amc:
+          name: test-alertmanagerconfig
+          namespace: test-namespace
+          route:
+            receiver: default
+          receivers:
+            - name: default
+              webhookConfigs:
+                - url: http://webhook.example.com/alerts
+          timeIntervals:
+            - name: business-hours
+              timeIntervals:
+                - times:
+                    - startTime: "09:00"
+                      endTime: "17:00"
+                  weekdays:
+                    - monday:friday
+    asserts:
+      - equal:
+          path: spec.timeIntervals[0].name
+          value: business-hours
+
+  - it: should set custom labels and annotations
+    values:
+      - alertmanagerconfig_values.yaml
+    set:
+      alertmanagerConfigs.test-amc.labels:
+        custom-label: test-value
+      alertmanagerConfigs.test-amc.annotations:
+        custom-annotation: test-annotation
+    asserts:
+      - equal:
+          path: metadata.labels["custom-label"]
+          value: test-value
+      - equal:
+          path: metadata.annotations["custom-annotation"]
+          value: test-annotation

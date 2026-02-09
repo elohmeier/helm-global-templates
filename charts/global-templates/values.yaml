@@ -124,6 +124,19 @@ exports:
       scrapeTimeout: 10s
       path: /metrics
 
+    vmservicescrape_defaults:
+      interval: 30s
+      scrapeTimeout: 10s
+      path: /metrics
+
+    prometheusrule_defaults:
+
+    probe_defaults:
+      interval: 30s
+      scrapeTimeout: 10s
+
+    alertmanagerconfig_defaults:
+
     cnpgcluster_defaults:
       instances: 3
       imageName: "ghcr.io/cloudnative-pg/postgresql:18"

@@ -1,0 +1,11 @@
+probes:
+  test-probe:
+    name: test-probe
+    namespace: test-namespace
+    prober:
+      url: blackbox-exporter.monitoring:9115
+    targets:
+      staticConfig:
+        static:
+          - https://example.com
+          - https://example.org

@@ -1,0 +1,9 @@
+podMonitors:
+  test-pm:
+    name: test-podmonitor
+    namespace: test-namespace
+    selector:
+      matchLabels:
+        app: my-app
+    podMetricsEndpoints:
+      - port: http-metrics

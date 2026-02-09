@@ -29,3 +29,9 @@
 {{ include "global-templates.kafkabridge" (dict "kafkabridges" .Values.kafkabridges "Chart" .Chart "Release" .Release "Capabilities" .Capabilities "Files" .Files "Template" .Template "Values" .Values) }}
 {{ include "global-templates.kafkamirrormaker2" (dict "kafkamirrormaker2s" .Values.kafkamirrormaker2s "Chart" .Chart "Release" .Release "Capabilities" .Capabilities "Files" .Files "Template" .Template "Values" .Values) }}
 {{ include "global-templates.networkpolicy" (dict "networkpolicies" .Values.networkpolicies "Chart" .Chart "Release" .Release "Capabilities" .Capabilities "Files" .Files "Template" .Template "Values" .Values) }}
+{{ include "global-templates.servicemonitor" (dict "serviceMonitors" .Values.serviceMonitors "Chart" .Chart "Release" .Release "Capabilities" .Capabilities "Files" .Files "Template" .Template "Values" .Values) }}
+{{ include "global-templates.podmonitor" (dict "podMonitors" .Values.podMonitors "Chart" .Chart "Release" .Release "Capabilities" .Capabilities "Files" .Files "Template" .Template "Values" .Values) }}
+{{ include "global-templates.prometheusrule" (dict "prometheusRules" .Values.prometheusRules "Chart" .Chart "Release" .Release "Capabilities" .Capabilities "Files" .Files "Template" .Template "Values" .Values) }}
+{{ include "global-templates.probe" (dict "probes" .Values.probes "Chart" .Chart "Release" .Release "Capabilities" .Capabilities "Files" .Files "Template" .Template "Values" .Values) }}
+{{ include "global-templates.alertmanagerconfig" (dict "alertmanagerConfigs" .Values.alertmanagerConfigs "Chart" .Chart "Release" .Release "Capabilities" .Capabilities "Files" .Files "Template" .Template "Values" .Values) }}
+{{ include "global-templates.vmservicescrape" (dict "vmServiceScrapes" .Values.vmServiceScrapes "Chart" .Chart "Release" .Release "Capabilities" .Capabilities "Files" .Files "Template" .Template "Values" .Values) }}

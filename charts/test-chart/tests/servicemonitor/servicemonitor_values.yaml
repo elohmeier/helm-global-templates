@@ -1,0 +1,9 @@
+serviceMonitors:
+  test-sm:
+    name: test-servicemonitor
+    namespace: test-namespace
+    selector:
+      matchLabels:
+        app: my-app
+    endpoints:
+      - port: http-metrics
