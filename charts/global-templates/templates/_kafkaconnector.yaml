@@ -3,32 +3,26 @@ Copyright (C) 2026 XM Cyber
 Author: Devops Infra Team
 */}}
 
-{{- define "global-templates.kafkanodepool" -}}
+{{- define "global-templates.kafkaconnector" -}}
 {{- $global_values := .Values.global }}
-{{- $default_values := .Values.kafkanodepool_defaults | default dict }}
+{{- $default_values := .Values.kafkaconnector_defaults | default dict }}
 {{- $common_defaults := .Values.common_defaults | default dict }}
-{{- range .kafkanodepools }}
+{{- range .kafkaconnectors }}
 {{- if not .disabled }}
-{{- $nodepool := . }}
-{{- $clusterRef := required "clusterRef is required for KafkaNodePool" $nodepool.clusterRef }}
-{{- if not $nodepool.roles }}
-{{- fail "roles is required for KafkaNodePool" }}
-{{- end }}
-{{- if not $nodepool.storage }}
-{{- fail "storage is required for KafkaNodePool" }}
-{{- end }}
+{{- $connector := . }}
+{{- $clusterRef := required "clusterRef is required for KafkaConnector" $connector.clusterRef }}
 {{- $renderedClusterRef := include "helpers.renderGlobalIfExists" (dict "value" $clusterRef "global" $global_values) }}
 {{- $clusterLabel := dict "strimzi.io/cluster" $renderedClusterRef }}
-{{- $customLabels := merge ($nodepool.labels | default dict) $clusterLabel }}
-{{- $customAnnotations := $nodepool.annotations | default dict }}
-{{- $specFields := omit $nodepool "name" "namespace" "labels" "annotations" "disabled" "clusterRef" }}
+{{- $customLabels := merge ($connector.labels | default dict) $clusterLabel }}
+{{- $customAnnotations := $connector.annotations | default dict }}
+{{- $specFields := omit $connector "name" "namespace" "labels" "annotations" "disabled" "clusterRef" }}
 {{- $specFields = merge $specFields $default_values }}
 ---
 apiVersion: kafka.strimzi.io/v1
-kind: KafkaNodePool
+kind: KafkaConnector
 metadata:
-  name: {{ include "helpers.renderGlobalIfExists" (dict "value" (required "Name is required for kafkanodepool" $nodepool.name) "global" $global_values) }}
-  namespace: {{ include "helpers.prefixNamespace" (dict "namespace" $nodepool.namespace "global" $global_values) }}
+  name: {{ required "Name is required for kafkaconnector" $connector.name }}
+  namespace: {{ include "helpers.prefixNamespace" (dict "namespace" $connector.namespace "global" $global_values) }}
   labels: {{- include "helpers.labels" (dict "context" $ "customLabels" $customLabels "defaultLabels" $common_defaults.labels) | nindent 4 }}
   {{- if or $customAnnotations $common_defaults.annotations }}
   annotations:

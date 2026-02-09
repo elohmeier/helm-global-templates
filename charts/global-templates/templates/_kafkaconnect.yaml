@@ -1,0 +1,36 @@
+{{/*
+Copyright (C) 2026 XM Cyber
+Author: Devops Infra Team
+*/}}
+
+{{- define "global-templates.kafkaconnect" -}}
+{{- $global_values := .Values.global }}
+{{- $default_values := .Values.kafkaconnect_defaults | default dict }}
+{{- $common_defaults := .Values.common_defaults | default dict }}
+{{- range .kafkaconnects }}
+{{- if not .disabled }}
+{{- $connect := . }}
+{{- $customAnnotations := $connect.annotations | default dict }}
+{{- if $connect.useConnectorResources }}
+{{- $customAnnotations = merge $customAnnotations (dict "strimzi.io/use-connector-resources" "true") }}
+{{- end }}
+{{- $specFields := omit $connect "name" "namespace" "labels" "annotations" "disabled" "useConnectorResources" }}
+{{- $specFields = merge $specFields $default_values }}
+---
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaConnect
+metadata:
+  name: {{ required "Name is required for kafkaconnect" $connect.name }}
+  namespace: {{ include "helpers.prefixNamespace" (dict "namespace" $connect.namespace "global" $global_values) }}
+  labels: {{- include "helpers.labels" (dict "context" $ "customLabels" $connect.labels "defaultLabels" $common_defaults.labels) | nindent 4 }}
+  {{- if or $customAnnotations $common_defaults.annotations }}
+  annotations:
+    {{- include "helpers.annotations" (dict "context" $ "customAnnotations" $customAnnotations "defaultAnnotations" $common_defaults.annotations) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- $specYaml := toYaml $specFields }}
+  {{- $rendered := include "helpers.renderGlobalIfExists" (dict "value" $specYaml "global" $global_values) }}
+  {{- tpl $rendered $ | nindent 2 }}
+{{- end }}
+{{- end }}
+{{- end }}

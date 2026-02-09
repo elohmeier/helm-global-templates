@@ -1,0 +1,10 @@
+kafkaconnectors:
+  test-connector:
+    name: test-connector
+    namespace: test-namespace
+    clusterRef: my-connect-cluster
+    class: org.apache.kafka.connect.file.FileStreamSourceConnector
+    tasksMax: 2
+    config:
+      file: "/opt/kafka/LICENSE"
+      topic: my-topic

@@ -1,0 +1,124 @@
+suite: Test kafkamirrormaker2 template
+templates:
+  - template.yaml
+
+tests:
+  - it: should create basic kafkamirrormaker2 correctly
+    values:
+      - kafkamirrormaker2_values.yaml
+    asserts:
+      - equal:
+          path: kind
+          value: KafkaMirrorMaker2
+      - equal:
+          path: apiVersion
+          value: kafka.strimzi.io/v1
+      - equal:
+          path: metadata.name
+          value: test-mm2
+      - equal:
+          path: metadata.namespace
+          value: test-namespace
+      - equal:
+          path: spec.replicas
+          value: 1
+      - equal:
+          path: spec.connectCluster
+          value: cluster-b
+
+  - it: should render mirror configuration correctly
+    values:
+      - kafkamirrormaker2_values.yaml
+    asserts:
+      - equal:
+          path: spec.mirrors[0].sourceCluster
+          value: cluster-a
+      - equal:
+          path: spec.mirrors[0].targetCluster
+          value: cluster-b
+      - equal:
+          path: spec.mirrors[0].topicsPattern
+          value: ".*"
+
+  - it: should render cluster configuration correctly
+    values:
+      - kafkamirrormaker2_values.yaml
+    asserts:
+      - equal:
+          path: spec.clusters[0].alias
+          value: cluster-a
+      - equal:
+          path: spec.clusters[0].bootstrapServers
+          value: cluster-a-kafka-bootstrap:9092
+      - equal:
+          path: spec.clusters[1].alias
+          value: cluster-b
+
+  - it: should not render kafkamirrormaker2 if disabled
+    values:
+      - kafkamirrormaker2_values.yaml
+    set:
+      kafkamirrormaker2s.test-mm2.disabled: true
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should set labels correctly
+    values:
+      - kafkamirrormaker2_values.yaml
+    set:
+      kafkamirrormaker2s.test-mm2.labels:
+        custom-label: test-value
+    asserts:
+      - equal:
+          path: metadata.labels["custom-label"]
+          value: test-value
+
+  - it: should set annotations correctly
+    values:
+      - kafkamirrormaker2_values.yaml
+    set:
+      kafkamirrormaker2s.test-mm2.annotations:
+        test-annotation: test-value
+    asserts:
+      - equal:
+          path: metadata.annotations["test-annotation"]
+          value: test-value
+
+  - it: should render global placeholders in spec
+    set:
+      global:
+        kafka:
+          sourceBootstrap: cluster-a-kafka-bootstrap:9092
+      kafkamirrormaker2s:
+        - name: test-mm2
+          namespace: test-namespace
+          version: 3.7.0
+          replicas: 1
+          connectCluster: cluster-b
+          clusters:
+            - alias: cluster-a
+              bootstrapServers: "{{global.kafka.sourceBootstrap}}"
+            - alias: cluster-b
+              bootstrapServers: cluster-b-kafka-bootstrap:9092
+          mirrors:
+            - sourceCluster: cluster-a
+              targetCluster: cluster-b
+              topicsPattern: ".*"
+    asserts:
+      - equal:
+          path: spec.clusters[0].bootstrapServers
+          value: cluster-a-kafka-bootstrap:9092
+
+  - it: should render global placeholders in annotations
+    values:
+      - kafkamirrormaker2_values.yaml
+    set:
+      global:
+        env: production
+      kafkamirrormaker2s.test-mm2.annotations:
+        environment: "{{global.env}}"
+    asserts:
+      - equal:
+          path: metadata.annotations["environment"]
+          value: production

@@ -12,7 +12,7 @@ tests:
           value: Kafka
       - equal:
           path: apiVersion
-          value: kafka.strimzi.io/v1beta2
+          value: kafka.strimzi.io/v1
       - equal:
           path: metadata.name
           value: test-kafka
@@ -26,19 +26,9 @@ tests:
           path: spec.kafka.replicas
           value: 3
 
-  - it: should add nodePoolsEnabled annotations
-    set:
-      kafkas:
-        - name: test-kafka
-          namespace: test-namespace
-          nodePoolsEnabled: true
-          kafka:
-            version: 3.7.0
-            listeners:
-              - name: plain
-                port: 9092
-                type: internal
-                tls: false
+  - it: should add nodePoolsEnabled annotations by default
+    values:
+      - kafka_values.yaml
     asserts:
       - equal:
           path: metadata.annotations["strimzi.io/node-pools"]
@@ -47,12 +37,12 @@ tests:
           path: metadata.annotations["strimzi.io/kraft"]
           value: enabled
 
-  - it: should not include nodePoolsEnabled in spec
+  - it: should not add nodePoolsEnabled annotations when explicitly disabled
     set:
       kafkas:
         - name: test-kafka
           namespace: test-namespace
-          nodePoolsEnabled: true
+          nodePoolsEnabled: false
           kafka:
             version: 3.7.0
             listeners:
@@ -60,6 +50,15 @@ tests:
                 port: 9092
                 type: internal
                 tls: false
+    asserts:
+      - isNull:
+          path: metadata.annotations["strimzi.io/node-pools"]
+      - isNull:
+          path: metadata.annotations["strimzi.io/kraft"]
+
+  - it: should not include nodePoolsEnabled in spec
+    values:
+      - kafka_values.yaml
     asserts:
       - isNull:
           path: spec.nodePoolsEnabled

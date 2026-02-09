@@ -143,4 +143,14 @@ exports:
 
     kafkauser_defaults:
 
+    kafkaconnect_defaults:
+
+    kafkaconnector_defaults:
+
+    kafkarebalance_defaults:
+
+    kafkabridge_defaults:
+
+    kafkamirrormaker2_defaults:
+
     networkpolicy_defaults:

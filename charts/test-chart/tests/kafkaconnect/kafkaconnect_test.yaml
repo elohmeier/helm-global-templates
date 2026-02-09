@@ -1,0 +1,129 @@
+suite: Test kafkaconnect template
+templates:
+  - template.yaml
+
+tests:
+  - it: should create basic kafkaconnect correctly
+    values:
+      - kafkaconnect_values.yaml
+    asserts:
+      - equal:
+          path: kind
+          value: KafkaConnect
+      - equal:
+          path: apiVersion
+          value: kafka.strimzi.io/v1
+      - equal:
+          path: metadata.name
+          value: test-connect
+      - equal:
+          path: metadata.namespace
+          value: test-namespace
+      - equal:
+          path: spec.replicas
+          value: 1
+      - equal:
+          path: spec.bootstrapServers
+          value: my-cluster-kafka-bootstrap:9093
+
+  - it: should not render kafkaconnect if disabled
+    values:
+      - kafkaconnect_values.yaml
+    set:
+      kafkaconnects.test-connect.disabled: true
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should set labels correctly
+    values:
+      - kafkaconnect_values.yaml
+    set:
+      kafkaconnects.test-connect.labels:
+        custom-label: test-value
+    asserts:
+      - equal:
+          path: metadata.labels["custom-label"]
+          value: test-value
+
+  - it: should set annotations correctly
+    values:
+      - kafkaconnect_values.yaml
+    set:
+      kafkaconnects.test-connect.annotations:
+        test-annotation: test-value
+    asserts:
+      - equal:
+          path: metadata.annotations["test-annotation"]
+          value: test-value
+
+  - it: should add use-connector-resources annotation when enabled
+    set:
+      kafkaconnects:
+        - name: test-connect
+          namespace: test-namespace
+          useConnectorResources: true
+          replicas: 1
+          bootstrapServers: my-cluster-kafka-bootstrap:9093
+    asserts:
+      - equal:
+          path: metadata.annotations["strimzi.io/use-connector-resources"]
+          value: "true"
+
+  - it: should not include useConnectorResources in spec
+    set:
+      kafkaconnects:
+        - name: test-connect
+          namespace: test-namespace
+          useConnectorResources: true
+          replicas: 1
+          bootstrapServers: my-cluster-kafka-bootstrap:9093
+    asserts:
+      - isNull:
+          path: spec.useConnectorResources
+
+  - it: should merge useConnectorResources annotation with custom annotations
+    set:
+      kafkaconnects:
+        - name: test-connect
+          namespace: test-namespace
+          useConnectorResources: true
+          annotations:
+            custom-annotation: custom-value
+          replicas: 1
+          bootstrapServers: my-cluster-kafka-bootstrap:9093
+    asserts:
+      - equal:
+          path: metadata.annotations["strimzi.io/use-connector-resources"]
+          value: "true"
+      - equal:
+          path: metadata.annotations["custom-annotation"]
+          value: custom-value
+
+  - it: should render global placeholders in spec
+    set:
+      global:
+        kafka:
+          bootstrap: my-cluster-kafka-bootstrap:9093
+      kafkaconnects:
+        - name: test-connect
+          namespace: test-namespace
+          replicas: 1
+          bootstrapServers: "{{global.kafka.bootstrap}}"
+    asserts:
+      - equal:
+          path: spec.bootstrapServers
+          value: my-cluster-kafka-bootstrap:9093
+
+  - it: should render global placeholders in annotations
+    values:
+      - kafkaconnect_values.yaml
+    set:
+      global:
+        env: production
+      kafkaconnects.test-connect.annotations:
+        environment: "{{global.env}}"
+    asserts:
+      - equal:
+          path: metadata.annotations["environment"]
+          value: production

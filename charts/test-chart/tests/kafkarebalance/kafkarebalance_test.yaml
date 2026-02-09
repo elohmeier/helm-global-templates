@@ -1,31 +1,28 @@
-suite: Test kafkauser template
+suite: Test kafkarebalance template
 templates:
   - template.yaml
 
 tests:
-  - it: should create basic kafkauser correctly
+  - it: should create basic kafkarebalance correctly
     values:
-      - kafkauser_values.yaml
+      - kafkarebalance_values.yaml
     asserts:
       - equal:
           path: kind
-          value: KafkaUser
+          value: KafkaRebalance
       - equal:
           path: apiVersion
           value: kafka.strimzi.io/v1
       - equal:
           path: metadata.name
-          value: test-user
+          value: test-rebalance
       - equal:
           path: metadata.namespace
           value: test-namespace
-      - equal:
-          path: spec.authentication.type
-          value: scram-sha-512
 
   - it: should inject clusterRef as strimzi.io/cluster label
     values:
-      - kafkauser_values.yaml
+      - kafkarebalance_values.yaml
     asserts:
       - equal:
           path: metadata.labels["strimzi.io/cluster"]
@@ -33,36 +30,59 @@ tests:
 
   - it: should not include clusterRef in spec
     values:
-      - kafkauser_values.yaml
+      - kafkarebalance_values.yaml
     asserts:
       - isNull:
           path: spec.clusterRef
 
+  - it: should render with minimal spec when no extra fields provided
+    values:
+      - kafkarebalance_values.yaml
+    asserts:
+      - notEqual:
+          path: kind
+          value: null
+
+  - it: should render with spec goals when provided
+    set:
+      kafkarebalances:
+        - name: test-rebalance
+          namespace: test-namespace
+          clusterRef: my-cluster
+          goals:
+            - CpuCapacityGoal
+            - DiskCapacityGoal
+    asserts:
+      - equal:
+          path: spec.goals[0]
+          value: CpuCapacityGoal
+      - equal:
+          path: spec.goals[1]
+          value: DiskCapacityGoal
+
   - it: should fail if clusterRef is missing
     set:
-      kafkausers:
-        - name: test-user
+      kafkarebalances:
+        - name: test-rebalance
           namespace: test-namespace
-          authentication:
-            type: scram-sha-512
     asserts:
       - failedTemplate:
-          errorMessage: "clusterRef is required for KafkaUser"
+          errorMessage: "clusterRef is required for KafkaRebalance"
 
-  - it: should not render kafkauser if disabled
+  - it: should not render kafkarebalance if disabled
     values:
-      - kafkauser_values.yaml
+      - kafkarebalance_values.yaml
     set:
-      kafkausers.test-user.disabled: true
+      kafkarebalances.test-rebalance.disabled: true
     asserts:
       - hasDocuments:
           count: 0
 
-  - it: should set labels correctly
+  - it: should set custom labels alongside cluster label
     values:
-      - kafkauser_values.yaml
+      - kafkarebalance_values.yaml
     set:
-      kafkausers.test-user.labels:
+      kafkarebalances.test-rebalance.labels:
         custom-label: test-value
     asserts:
       - equal:
@@ -74,9 +94,9 @@ tests:
 
   - it: should set annotations correctly
     values:
-      - kafkauser_values.yaml
+      - kafkarebalance_values.yaml
     set:
-      kafkausers.test-user.annotations:
+      kafkarebalances.test-rebalance.annotations:
         test-annotation: test-value
     asserts:
       - equal:
@@ -88,12 +108,10 @@ tests:
       global:
         kafka:
           cluster: my-global-cluster
-      kafkausers:
-        - name: test-user
+      kafkarebalances:
+        - name: test-rebalance
           namespace: test-namespace
           clusterRef: "{{global.kafka.cluster}}"
-          authentication:
-            type: scram-sha-512
     asserts:
       - equal:
           path: metadata.labels["strimzi.io/cluster"]
@@ -101,11 +119,11 @@ tests:
 
   - it: should render global placeholders in annotations
     values:
-      - kafkauser_values.yaml
+      - kafkarebalance_values.yaml
     set:
       global:
         env: production
-      kafkausers.test-user.annotations:
+      kafkarebalances.test-rebalance.annotations:
         environment: "{{global.env}}"
     asserts:
       - equal:
