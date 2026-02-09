@@ -1,0 +1,40 @@
+{{/*
+Copyright (C) 2026 XM Cyber
+Author: Devops Infra Team
+*/}}
+
+{{- define "global-templates.kafkauser" -}}
+{{- $global_values := .Values.global }}
+{{- $common_defaults := .Values.common_defaults | default dict }}
+{{- range .kafkausers }}
+{{- if not .disabled }}
+{{- $user := . }}
+{{- $namespace := include "helpers.namespace" (dict "ns" ($user.namespace | default "") "overrideNs" $.Release.Namespace) }}
+{{- $hasSpec := hasKey $user "spec" }}
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaUser
+metadata:
+  name: {{ required "Name is required for kafkauser" $user.name }}
+  namespace: {{ include "helpers.prefixNamespace" (dict "namespace" $namespace "global" $global_values) }}
+  labels: {{- include "helpers.labels" (dict "context" $ "customLabels" $user.labels "defaultLabels" $common_defaults.labels) | nindent 4 }}
+  {{- if or $user.annotations $common_defaults.annotations }}
+  annotations:
+    {{- include "helpers.annotations" (dict "context" $ "customAnnotations" $user.annotations "defaultAnnotations" $common_defaults.annotations) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if $hasSpec }}
+  {{- include "common.tplvalues.render" (dict "value" $user.spec "context" $) | nindent 2 }}
+  {{- else }}
+  {{- if $user.authentication }}
+  authentication:
+    {{- include "common.tplvalues.render" (dict "value" $user.authentication "context" $) | nindent 4 }}
+  {{- end }}
+  {{- if $user.authorization }}
+  authorization:
+    {{- include "common.tplvalues.render" (dict "value" $user.authorization "context" $) | nindent 4 }}
+  {{- end }}
+  {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

@@ -19,3 +19,8 @@
 {{ include "global-templates.clusterissuer" (dict "clusterissuers" .Values.clusterissuers "Chart" .Chart "Release" .Release "Capabilities" .Capabilities "Files" .Files "Template" .Template "Values" .Values) }}
 {{ include "global-templates.issuer" (dict "issuers" .Values.issuers "Chart" .Chart "Release" .Release "Capabilities" .Capabilities "Files" .Files "Template" .Template "Values" .Values) }}
   {{ include "global-templates.scaledobject" (dict "scaledobjects" .Values.scaledobjects "Chart" .Chart "Release" .Release "Capabilities" .Capabilities "Files" .Files "Template" .Template "Values" .Values) }}
+{{ include "global-templates.kafka" (dict "kafkas" .Values.kafkas "Chart" .Chart "Release" .Release "Capabilities" .Capabilities "Files" .Files "Template" .Template "Values" .Values) }}
+{{ include "global-templates.kafkanodepool" (dict "kafkanodepools" .Values.kafkanodepools "Chart" .Chart "Release" .Release "Capabilities" .Capabilities "Files" .Files "Template" .Template "Values" .Values) }}
+{{ include "global-templates.kafkatopic" (dict "kafkatopics" .Values.kafkatopics "Chart" .Chart "Release" .Release "Capabilities" .Capabilities "Files" .Files "Template" .Template "Values" .Values) }}
+{{ include "global-templates.kafkauser" (dict "kafkausers" .Values.kafkausers "Chart" .Chart "Release" .Release "Capabilities" .Capabilities "Files" .Files "Template" .Template "Values" .Values) }}
+{{ include "global-templates.networkpolicy" (dict "networkpolicies" .Values.networkpolicies "Chart" .Chart "Release" .Release "Capabilities" .Capabilities "Files" .Files "Template" .Template "Values" .Values) }}

@@ -134,3 +134,13 @@ exports:
     workflowtemplate_defaults:
 
     backend_defaults:
+
+    kafka_defaults:
+
+    kafkanodepool_defaults:
+
+    kafkatopic_defaults:
+
+    kafkauser_defaults:
+
+    networkpolicy_defaults:
