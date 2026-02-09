@@ -219,6 +219,13 @@ spec:
             readOnly: {{ $value.persistentVolumeClaim.readOnly }}
             {{- end }}
           {{- end }}
+          {{- if $value.image }}
+          image:
+            reference: {{ include "helpers.renderGlobalIfExists" (dict "value" ($value.image.reference) "global" $global_values) }}
+            {{- if $value.image.pullPolicy }}
+            pullPolicy: {{ $value.image.pullPolicy }}
+            {{- end }}
+          {{- end }}
         {{- end }}
       {{- else }}
         {{- toYaml .volumes | nindent 8 }}
