@@ -5,24 +5,39 @@ Author: Devops Infra Team
 
 {{- define "global-templates.kafkanodepool" -}}
 {{- $global_values := .Values.global }}
+{{- $default_values := .Values.kafkanodepool_defaults | default dict }}
 {{- $common_defaults := .Values.common_defaults | default dict }}
 {{- range .kafkanodepools }}
 {{- if not .disabled }}
 {{- $nodepool := . }}
-{{- $namespace := include "helpers.namespace" (dict "ns" ($nodepool.namespace | default "") "overrideNs" $.Release.Namespace) }}
+{{- $clusterRef := required "clusterRef is required for KafkaNodePool" $nodepool.clusterRef }}
+{{- if not $nodepool.roles }}
+{{- fail "roles is required for KafkaNodePool" }}
+{{- end }}
+{{- if not $nodepool.storage }}
+{{- fail "storage is required for KafkaNodePool" }}
+{{- end }}
+{{- $renderedClusterRef := include "helpers.renderGlobalIfExists" (dict "value" $clusterRef "global" $global_values) }}
+{{- $clusterLabel := dict "strimzi.io/cluster" $renderedClusterRef }}
+{{- $customLabels := merge ($nodepool.labels | default dict) $clusterLabel }}
+{{- $customAnnotations := $nodepool.annotations | default dict }}
+{{- $specFields := omit $nodepool "name" "namespace" "labels" "annotations" "disabled" "clusterRef" }}
+{{- $specFields = merge $specFields $default_values }}
 ---
 apiVersion: kafka.strimzi.io/v1beta2
 kind: KafkaNodePool
 metadata:
   name: {{ include "helpers.renderGlobalIfExists" (dict "value" (required "Name is required for kafkanodepool" $nodepool.name) "global" $global_values) }}
-  namespace: {{ include "helpers.prefixNamespace" (dict "namespace" $namespace "global" $global_values) }}
-  labels: {{- include "helpers.labels" (dict "context" $ "customLabels" $nodepool.labels "defaultLabels" $common_defaults.labels) | nindent 4 }}
-  {{- if or $nodepool.annotations $common_defaults.annotations }}
+  namespace: {{ include "helpers.prefixNamespace" (dict "namespace" $nodepool.namespace "global" $global_values) }}
+  labels: {{- include "helpers.labels" (dict "context" $ "customLabels" $customLabels "defaultLabels" $common_defaults.labels) | nindent 4 }}
+  {{- if or $customAnnotations $common_defaults.annotations }}
   annotations:
-    {{- include "helpers.annotations" (dict "context" $ "customAnnotations" $nodepool.annotations "defaultAnnotations" $common_defaults.annotations) | nindent 4 }}
+    {{- include "helpers.annotations" (dict "context" $ "customAnnotations" $customAnnotations "defaultAnnotations" $common_defaults.annotations) | nindent 4 }}
   {{- end }}
 spec:
-  {{- include "common.tplvalues.render" (dict "value" (required "spec is required for kafkanodepool" (omit $nodepool "name" "namespace" "labels" "annotations" "disabled")) "context" $) | nindent 2 }}
+  {{- $specYaml := toYaml $specFields }}
+  {{- $rendered := include "helpers.renderGlobalIfExists" (dict "value" $specYaml "global" $global_values) }}
+  {{- tpl $rendered $ | nindent 2 }}
 {{- end }}
 {{- end }}
 {{- end }}

@@ -1,0 +1,155 @@
+suite: Test kafka template
+templates:
+  - template.yaml
+
+tests:
+  - it: should create basic kafka correctly
+    values:
+      - kafka_values.yaml
+    asserts:
+      - equal:
+          path: kind
+          value: Kafka
+      - equal:
+          path: apiVersion
+          value: kafka.strimzi.io/v1beta2
+      - equal:
+          path: metadata.name
+          value: test-kafka
+      - equal:
+          path: metadata.namespace
+          value: test-namespace
+      - equal:
+          path: spec.kafka.version
+          value: "3.7.0"
+      - equal:
+          path: spec.kafka.replicas
+          value: 3
+
+  - it: should add nodePoolsEnabled annotations
+    set:
+      kafkas:
+        - name: test-kafka
+          namespace: test-namespace
+          nodePoolsEnabled: true
+          kafka:
+            version: 3.7.0
+            listeners:
+              - name: plain
+                port: 9092
+                type: internal
+                tls: false
+    asserts:
+      - equal:
+          path: metadata.annotations["strimzi.io/node-pools"]
+          value: enabled
+      - equal:
+          path: metadata.annotations["strimzi.io/kraft"]
+          value: enabled
+
+  - it: should not include nodePoolsEnabled in spec
+    set:
+      kafkas:
+        - name: test-kafka
+          namespace: test-namespace
+          nodePoolsEnabled: true
+          kafka:
+            version: 3.7.0
+            listeners:
+              - name: plain
+                port: 9092
+                type: internal
+                tls: false
+    asserts:
+      - isNull:
+          path: spec.nodePoolsEnabled
+
+  - it: should not render kafka if disabled
+    values:
+      - kafka_values.yaml
+    set:
+      kafkas.test-kafka.disabled: true
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should set labels correctly
+    values:
+      - kafka_values.yaml
+    set:
+      kafkas.test-kafka.labels:
+        custom-label: test-value
+    asserts:
+      - equal:
+          path: metadata.labels["custom-label"]
+          value: test-value
+
+  - it: should set annotations correctly
+    values:
+      - kafka_values.yaml
+    set:
+      kafkas.test-kafka.annotations:
+        test-annotation: test-value
+    asserts:
+      - equal:
+          path: metadata.annotations["test-annotation"]
+          value: test-value
+
+  - it: should merge nodePoolsEnabled annotations with custom annotations
+    set:
+      kafkas:
+        - name: test-kafka
+          namespace: test-namespace
+          nodePoolsEnabled: true
+          annotations:
+            custom-annotation: custom-value
+          kafka:
+            version: 3.7.0
+            listeners:
+              - name: plain
+                port: 9092
+                type: internal
+                tls: false
+    asserts:
+      - equal:
+          path: metadata.annotations["strimzi.io/node-pools"]
+          value: enabled
+      - equal:
+          path: metadata.annotations["strimzi.io/kraft"]
+          value: enabled
+      - equal:
+          path: metadata.annotations["custom-annotation"]
+          value: custom-value
+
+  - it: should render global placeholders in spec
+    set:
+      global:
+        kafka:
+          version: "3.8.0"
+      kafkas:
+        - name: test-kafka
+          namespace: test-namespace
+          kafka:
+            version: "{{global.kafka.version}}"
+            listeners:
+              - name: plain
+                port: 9092
+                type: internal
+                tls: false
+    asserts:
+      - equal:
+          path: spec.kafka.version
+          value: "3.8.0"
+
+  - it: should render global placeholders in annotations
+    values:
+      - kafka_values.yaml
+    set:
+      global:
+        env: production
+      kafkas.test-kafka.annotations:
+        environment: "{{global.env}}"
+    asserts:
+      - equal:
+          path: metadata.annotations["environment"]
+          value: production

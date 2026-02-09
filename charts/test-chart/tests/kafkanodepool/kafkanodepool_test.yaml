@@ -1,0 +1,164 @@
+suite: Test kafkanodepool template
+templates:
+  - template.yaml
+
+tests:
+  - it: should create basic kafkanodepool correctly
+    values:
+      - kafkanodepool_values.yaml
+    asserts:
+      - equal:
+          path: kind
+          value: KafkaNodePool
+      - equal:
+          path: apiVersion
+          value: kafka.strimzi.io/v1beta2
+      - equal:
+          path: metadata.name
+          value: test-pool
+      - equal:
+          path: metadata.namespace
+          value: test-namespace
+      - equal:
+          path: spec.replicas
+          value: 3
+
+  - it: should inject clusterRef as strimzi.io/cluster label
+    values:
+      - kafkanodepool_values.yaml
+    asserts:
+      - equal:
+          path: metadata.labels["strimzi.io/cluster"]
+          value: my-cluster
+
+  - it: should not include clusterRef in spec
+    values:
+      - kafkanodepool_values.yaml
+    asserts:
+      - isNull:
+          path: spec.clusterRef
+
+  - it: should fail if clusterRef is missing
+    set:
+      kafkanodepools:
+        - name: test-pool
+          namespace: test-namespace
+          roles:
+            - broker
+          storage:
+            type: jbod
+            volumes:
+              - id: 0
+                type: persistent-claim
+                size: 100Gi
+    asserts:
+      - failedTemplate:
+          errorMessage: "clusterRef is required for KafkaNodePool"
+
+  - it: should fail if roles is missing
+    set:
+      kafkanodepools:
+        - name: test-pool
+          namespace: test-namespace
+          clusterRef: my-cluster
+          storage:
+            type: jbod
+            volumes:
+              - id: 0
+                type: persistent-claim
+                size: 100Gi
+    asserts:
+      - failedTemplate:
+          errorMessage: "roles is required for KafkaNodePool"
+
+  - it: should fail if storage is missing
+    set:
+      kafkanodepools:
+        - name: test-pool
+          namespace: test-namespace
+          clusterRef: my-cluster
+          roles:
+            - broker
+    asserts:
+      - failedTemplate:
+          errorMessage: "storage is required for KafkaNodePool"
+
+  - it: should not render kafkanodepool if disabled
+    values:
+      - kafkanodepool_values.yaml
+    set:
+      kafkanodepools.test-pool.disabled: true
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should set custom labels alongside cluster label
+    values:
+      - kafkanodepool_values.yaml
+    set:
+      kafkanodepools.test-pool.labels:
+        custom-label: test-value
+    asserts:
+      - equal:
+          path: metadata.labels["strimzi.io/cluster"]
+          value: my-cluster
+      - equal:
+          path: metadata.labels["custom-label"]
+          value: test-value
+
+  - it: should set annotations correctly
+    values:
+      - kafkanodepool_values.yaml
+    set:
+      kafkanodepools.test-pool.annotations:
+        test-annotation: test-value
+    asserts:
+      - equal:
+          path: metadata.annotations["test-annotation"]
+          value: test-value
+
+  - it: should render global placeholders in clusterRef
+    set:
+      global:
+        kafka:
+          cluster: my-global-cluster
+      kafkanodepools:
+        - name: test-pool
+          namespace: test-namespace
+          clusterRef: "{{global.kafka.cluster}}"
+          roles:
+            - broker
+          replicas: 3
+          storage:
+            type: jbod
+            volumes:
+              - id: 0
+                type: persistent-claim
+                size: 100Gi
+    asserts:
+      - equal:
+          path: metadata.labels["strimzi.io/cluster"]
+          value: my-global-cluster
+
+  - it: should render global placeholders in spec
+    set:
+      global:
+        storage:
+          size: 200Gi
+      kafkanodepools:
+        - name: test-pool
+          namespace: test-namespace
+          clusterRef: my-cluster
+          roles:
+            - broker
+          replicas: 3
+          storage:
+            type: jbod
+            volumes:
+              - id: 0
+                type: persistent-claim
+                size: "{{global.storage.size}}"
+    asserts:
+      - equal:
+          path: spec.storage.volumes[0].size
+          value: 200Gi

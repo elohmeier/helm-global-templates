@@ -1,0 +1,138 @@
+suite: Test kafkatopic template
+templates:
+  - template.yaml
+
+tests:
+  - it: should create basic kafkatopic correctly
+    values:
+      - kafkatopic_values.yaml
+    asserts:
+      - equal:
+          path: kind
+          value: KafkaTopic
+      - equal:
+          path: apiVersion
+          value: kafka.strimzi.io/v1beta2
+      - equal:
+          path: metadata.name
+          value: test-topic
+      - equal:
+          path: metadata.namespace
+          value: test-namespace
+      - equal:
+          path: spec.partitions
+          value: 3
+      - equal:
+          path: spec.replicas
+          value: 3
+
+  - it: should inject clusterRef as strimzi.io/cluster label
+    values:
+      - kafkatopic_values.yaml
+    asserts:
+      - equal:
+          path: metadata.labels["strimzi.io/cluster"]
+          value: my-cluster
+
+  - it: should not include clusterRef in spec
+    values:
+      - kafkatopic_values.yaml
+    asserts:
+      - isNull:
+          path: spec.clusterRef
+
+  - it: should default topicName to name
+    values:
+      - kafkatopic_values.yaml
+    asserts:
+      - equal:
+          path: spec.topicName
+          value: test-topic
+
+  - it: should use explicit topicName when provided
+    set:
+      kafkatopics:
+        - name: test-topic
+          namespace: test-namespace
+          clusterRef: my-cluster
+          topicName: my-custom-topic
+          partitions: 3
+          replicas: 3
+    asserts:
+      - equal:
+          path: spec.topicName
+          value: my-custom-topic
+
+  - it: should fail if clusterRef is missing
+    set:
+      kafkatopics:
+        - name: test-topic
+          namespace: test-namespace
+          partitions: 3
+          replicas: 3
+    asserts:
+      - failedTemplate:
+          errorMessage: "clusterRef is required for KafkaTopic"
+
+  - it: should not render kafkatopic if disabled
+    values:
+      - kafkatopic_values.yaml
+    set:
+      kafkatopics.test-topic.disabled: true
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should set labels correctly
+    values:
+      - kafkatopic_values.yaml
+    set:
+      kafkatopics.test-topic.labels:
+        custom-label: test-value
+    asserts:
+      - equal:
+          path: metadata.labels["strimzi.io/cluster"]
+          value: my-cluster
+      - equal:
+          path: metadata.labels["custom-label"]
+          value: test-value
+
+  - it: should set annotations correctly
+    values:
+      - kafkatopic_values.yaml
+    set:
+      kafkatopics.test-topic.annotations:
+        test-annotation: test-value
+    asserts:
+      - equal:
+          path: metadata.annotations["test-annotation"]
+          value: test-value
+
+  - it: should render global placeholders in clusterRef
+    set:
+      global:
+        kafka:
+          cluster: my-global-cluster
+      kafkatopics:
+        - name: test-topic
+          namespace: test-namespace
+          clusterRef: "{{global.kafka.cluster}}"
+          partitions: 3
+          replicas: 3
+    asserts:
+      - equal:
+          path: metadata.labels["strimzi.io/cluster"]
+          value: my-global-cluster
+
+  - it: should render global placeholders in annotations
+    values:
+      - kafkatopic_values.yaml
+    set:
+      global:
+        env: production
+      kafkatopics.test-topic.annotations:
+        environment: "{{global.env}}"
+    asserts:
+      - equal:
+          path: metadata.annotations["environment"]
+          value: production
