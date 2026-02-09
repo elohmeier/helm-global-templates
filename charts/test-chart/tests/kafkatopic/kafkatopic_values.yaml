@@ -1,0 +1,7 @@
+kafkatopics:
+  test-topic:
+    name: test-topic
+    namespace: test-namespace
+    clusterRef: my-cluster
+    partitions: 3
+    replicas: 3

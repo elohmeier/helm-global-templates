@@ -1,0 +1,7 @@
+kafkausers:
+  test-user:
+    name: test-user
+    namespace: test-namespace
+    clusterRef: my-cluster
+    authentication:
+      type: scram-sha-512

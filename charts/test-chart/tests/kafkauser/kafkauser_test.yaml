@@ -1,0 +1,113 @@
+suite: Test kafkauser template
+templates:
+  - template.yaml
+
+tests:
+  - it: should create basic kafkauser correctly
+    values:
+      - kafkauser_values.yaml
+    asserts:
+      - equal:
+          path: kind
+          value: KafkaUser
+      - equal:
+          path: apiVersion
+          value: kafka.strimzi.io/v1beta2
+      - equal:
+          path: metadata.name
+          value: test-user
+      - equal:
+          path: metadata.namespace
+          value: test-namespace
+      - equal:
+          path: spec.authentication.type
+          value: scram-sha-512
+
+  - it: should inject clusterRef as strimzi.io/cluster label
+    values:
+      - kafkauser_values.yaml
+    asserts:
+      - equal:
+          path: metadata.labels["strimzi.io/cluster"]
+          value: my-cluster
+
+  - it: should not include clusterRef in spec
+    values:
+      - kafkauser_values.yaml
+    asserts:
+      - isNull:
+          path: spec.clusterRef
+
+  - it: should fail if clusterRef is missing
+    set:
+      kafkausers:
+        - name: test-user
+          namespace: test-namespace
+          authentication:
+            type: scram-sha-512
+    asserts:
+      - failedTemplate:
+          errorMessage: "clusterRef is required for KafkaUser"
+
+  - it: should not render kafkauser if disabled
+    values:
+      - kafkauser_values.yaml
+    set:
+      kafkausers.test-user.disabled: true
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should set labels correctly
+    values:
+      - kafkauser_values.yaml
+    set:
+      kafkausers.test-user.labels:
+        custom-label: test-value
+    asserts:
+      - equal:
+          path: metadata.labels["strimzi.io/cluster"]
+          value: my-cluster
+      - equal:
+          path: metadata.labels["custom-label"]
+          value: test-value
+
+  - it: should set annotations correctly
+    values:
+      - kafkauser_values.yaml
+    set:
+      kafkausers.test-user.annotations:
+        test-annotation: test-value
+    asserts:
+      - equal:
+          path: metadata.annotations["test-annotation"]
+          value: test-value
+
+  - it: should render global placeholders in clusterRef
+    set:
+      global:
+        kafka:
+          cluster: my-global-cluster
+      kafkausers:
+        - name: test-user
+          namespace: test-namespace
+          clusterRef: "{{global.kafka.cluster}}"
+          authentication:
+            type: scram-sha-512
+    asserts:
+      - equal:
+          path: metadata.labels["strimzi.io/cluster"]
+          value: my-global-cluster
+
+  - it: should render global placeholders in annotations
+    values:
+      - kafkauser_values.yaml
+    set:
+      global:
+        env: production
+      kafkausers.test-user.annotations:
+        environment: "{{global.env}}"
+    asserts:
+      - equal:
+          path: metadata.annotations["environment"]
+          value: production

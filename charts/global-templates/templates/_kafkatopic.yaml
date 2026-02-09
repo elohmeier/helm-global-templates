@@ -5,24 +5,35 @@ Author: Devops Infra Team
 
 {{- define "global-templates.kafkatopic" -}}
 {{- $global_values := .Values.global }}
+{{- $default_values := .Values.kafkatopic_defaults | default dict }}
 {{- $common_defaults := .Values.common_defaults | default dict }}
 {{- range .kafkatopics }}
 {{- if not .disabled }}
 {{- $topic := . }}
-{{- $namespace := include "helpers.namespace" (dict "ns" ($topic.namespace | default "") "overrideNs" $.Release.Namespace) }}
+{{- $clusterRef := required "clusterRef is required for KafkaTopic" $topic.clusterRef }}
+{{- $renderedClusterRef := include "helpers.renderGlobalIfExists" (dict "value" $clusterRef "global" $global_values) }}
+{{- $clusterLabel := dict "strimzi.io/cluster" $renderedClusterRef }}
+{{- $customLabels := merge ($topic.labels | default dict) $clusterLabel }}
+{{- $customAnnotations := $topic.annotations | default dict }}
+{{- $topicName := $topic.topicName | default $topic.name }}
+{{- $specFields := omit $topic "name" "namespace" "labels" "annotations" "disabled" "clusterRef" }}
+{{- $specFields = merge $specFields (dict "topicName" $topicName) }}
+{{- $specFields = merge $specFields $default_values }}
 ---
 apiVersion: kafka.strimzi.io/v1beta2
 kind: KafkaTopic
 metadata:
   name: {{ required "Name is required for kafkatopic" $topic.name }}
-  namespace: {{ include "helpers.prefixNamespace" (dict "namespace" $namespace "global" $global_values) }}
-  labels: {{- include "helpers.labels" (dict "context" $ "customLabels" $topic.labels "defaultLabels" $common_defaults.labels) | nindent 4 }}
-  {{- if or $topic.annotations $common_defaults.annotations }}
+  namespace: {{ include "helpers.prefixNamespace" (dict "namespace" $topic.namespace "global" $global_values) }}
+  labels: {{- include "helpers.labels" (dict "context" $ "customLabels" $customLabels "defaultLabels" $common_defaults.labels) | nindent 4 }}
+  {{- if or $customAnnotations $common_defaults.annotations }}
   annotations:
-    {{- include "helpers.annotations" (dict "context" $ "customAnnotations" $topic.annotations "defaultAnnotations" $common_defaults.annotations) | nindent 4 }}
+    {{- include "helpers.annotations" (dict "context" $ "customAnnotations" $customAnnotations "defaultAnnotations" $common_defaults.annotations) | nindent 4 }}
   {{- end }}
 spec:
-  {{- include "common.tplvalues.render" (dict "value" (required "spec is required for kafkatopic" (omit $topic "name" "namespace" "labels" "annotations" "disabled")) "context" $) | nindent 2 }}
+  {{- $specYaml := toYaml $specFields }}
+  {{- $rendered := include "helpers.renderGlobalIfExists" (dict "value" $specYaml "global" $global_values) }}
+  {{- tpl $rendered $ | nindent 2 }}
 {{- end }}
 {{- end }}
 {{- end }}
