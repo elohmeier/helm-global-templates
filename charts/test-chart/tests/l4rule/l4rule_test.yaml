@@ -1,0 +1,82 @@
+suite: Test l4rule template
+templates:
+  - template.yaml
+
+tests:
+  - it: should create basic l4rule correctly
+    values:
+      - l4rule_values.yaml
+    asserts:
+      - equal:
+          path: kind
+          value: L4Rule
+      - equal:
+          path: apiVersion
+          value: ako.vmware.com/v1alpha2
+      - equal:
+          path: metadata.name
+          value: test-l4rule
+      - equal:
+          path: metadata.namespace
+          value: test-namespace
+      - equal:
+          path: spec.analyticsPolicy.fullClientLogs.enabled
+          value: true
+
+  - it: should not render l4rule if disabled
+    values:
+      - l4rule_values.yaml
+    set:
+      l4rules.test-l4rule.disabled: true
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should set labels correctly
+    values:
+      - l4rule_values.yaml
+    set:
+      l4rules.test-l4rule.labels:
+        custom-label: test-value
+    asserts:
+      - equal:
+          path: metadata.labels["custom-label"]
+          value: test-value
+
+  - it: should set annotations correctly
+    values:
+      - l4rule_values.yaml
+    set:
+      l4rules.test-l4rule.annotations:
+        test-annotation: test-value
+    asserts:
+      - equal:
+          path: metadata.annotations["test-annotation"]
+          value: test-value
+
+  - it: should render global placeholders in spec
+    set:
+      global:
+        lb:
+          ip: 192.168.1.100
+      l4rules:
+        - name: test-l4rule
+          namespace: test-namespace
+          backendProperties:
+            - port: 80
+              protocol: TCP
+              loadBalancerIP: "{{global.lb.ip}}"
+    asserts:
+      - equal:
+          path: spec.backendProperties[0].loadBalancerIP
+          value: "192.168.1.100"
+
+  - it: should fail without name
+    set:
+      l4rules:
+        - namespace: test-namespace
+          backendProperties:
+            - port: 80
+    asserts:
+      - failedTemplate:
+          errorMessage: "Name is required for l4rule"

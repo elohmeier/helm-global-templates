@@ -1,0 +1,11 @@
+l4rules:
+  test-l4rule:
+    name: test-l4rule
+    namespace: test-namespace
+    backendProperties:
+      - port: 80
+        protocol: TCP
+        loadBalancerIP: 10.0.0.1
+    analyticsPolicy:
+      fullClientLogs:
+        enabled: true

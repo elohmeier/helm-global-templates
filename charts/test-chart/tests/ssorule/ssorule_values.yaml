@@ -1,0 +1,8 @@
+ssorules:
+  test-ssorule:
+    name: test-ssorule
+    namespace: test-namespace
+    ssotype: saml
+    oauthProfile:
+      authorizationEndpoint: https://auth.example.com/authorize
+      tokenEndpoint: https://auth.example.com/token

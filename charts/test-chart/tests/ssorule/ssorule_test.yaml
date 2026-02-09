@@ -1,0 +1,80 @@
+suite: Test ssorule template
+templates:
+  - template.yaml
+
+tests:
+  - it: should create basic ssorule correctly
+    values:
+      - ssorule_values.yaml
+    asserts:
+      - equal:
+          path: kind
+          value: SSORule
+      - equal:
+          path: apiVersion
+          value: ako.vmware.com/v1alpha2
+      - equal:
+          path: metadata.name
+          value: test-ssorule
+      - equal:
+          path: metadata.namespace
+          value: test-namespace
+      - equal:
+          path: spec.ssotype
+          value: saml
+
+  - it: should not render ssorule if disabled
+    values:
+      - ssorule_values.yaml
+    set:
+      ssorules.test-ssorule.disabled: true
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should set labels correctly
+    values:
+      - ssorule_values.yaml
+    set:
+      ssorules.test-ssorule.labels:
+        custom-label: test-value
+    asserts:
+      - equal:
+          path: metadata.labels["custom-label"]
+          value: test-value
+
+  - it: should set annotations correctly
+    values:
+      - ssorule_values.yaml
+    set:
+      ssorules.test-ssorule.annotations:
+        test-annotation: test-value
+    asserts:
+      - equal:
+          path: metadata.annotations["test-annotation"]
+          value: test-value
+
+  - it: should render global placeholders in spec
+    set:
+      global:
+        sso:
+          authUrl: https://sso.global.example.com/authorize
+      ssorules:
+        - name: test-ssorule
+          namespace: test-namespace
+          ssotype: saml
+          oauthProfile:
+            authorizationEndpoint: "{{global.sso.authUrl}}"
+    asserts:
+      - equal:
+          path: spec.oauthProfile.authorizationEndpoint
+          value: "https://sso.global.example.com/authorize"
+
+  - it: should fail without name
+    set:
+      ssorules:
+        - namespace: test-namespace
+          ssotype: saml
+    asserts:
+      - failedTemplate:
+          errorMessage: "Name is required for ssorule"

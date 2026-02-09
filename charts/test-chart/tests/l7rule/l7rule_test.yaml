@@ -1,0 +1,79 @@
+suite: Test l7rule template
+templates:
+  - template.yaml
+
+tests:
+  - it: should create basic l7rule correctly
+    values:
+      - l7rule_values.yaml
+    asserts:
+      - equal:
+          path: kind
+          value: L7Rule
+      - equal:
+          path: apiVersion
+          value: ako.vmware.com/v1alpha2
+      - equal:
+          path: metadata.name
+          value: test-l7rule
+      - equal:
+          path: metadata.namespace
+          value: test-namespace
+      - equal:
+          path: spec.allowInvalidCACertificates
+          value: false
+
+  - it: should not render l7rule if disabled
+    values:
+      - l7rule_values.yaml
+    set:
+      l7rules.test-l7rule.disabled: true
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should set labels correctly
+    values:
+      - l7rule_values.yaml
+    set:
+      l7rules.test-l7rule.labels:
+        custom-label: test-value
+    asserts:
+      - equal:
+          path: metadata.labels["custom-label"]
+          value: test-value
+
+  - it: should set annotations correctly
+    values:
+      - l7rule_values.yaml
+    set:
+      l7rules.test-l7rule.annotations:
+        test-annotation: test-value
+    asserts:
+      - equal:
+          path: metadata.annotations["test-annotation"]
+          value: test-value
+
+  - it: should render global placeholders in spec
+    set:
+      global:
+        perf:
+          maxConn: 2000
+      l7rules:
+        - name: test-l7rule
+          namespace: test-namespace
+          performanceLimits:
+            maxConcurrentConnections: "{{global.perf.maxConn}}"
+    asserts:
+      - equal:
+          path: spec.performanceLimits.maxConcurrentConnections
+          value: "2000"
+
+  - it: should fail without name
+    set:
+      l7rules:
+        - namespace: test-namespace
+          allowInvalidCACertificates: false
+    asserts:
+      - failedTemplate:
+          errorMessage: "Name is required for l7rule"

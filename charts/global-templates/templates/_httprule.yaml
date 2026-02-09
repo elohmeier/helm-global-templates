@@ -1,0 +1,33 @@
+{{/*
+Copyright (C) 2026 XM Cyber
+Author: Devops Infra Team
+*/}}
+
+{{- define "global-templates.httprule" -}}
+{{- $global_values := .Values.global }}
+{{- $default_values := .Values.httprule_defaults | default dict }}
+{{- $common_defaults := .Values.common_defaults | default dict }}
+{{- range .httprules }}
+{{- if not .disabled }}
+{{- $resource := . }}
+{{- $customAnnotations := $resource.annotations | default dict }}
+{{- $specFields := omit $resource "name" "namespace" "labels" "annotations" "disabled" }}
+{{- $specFields = merge $specFields $default_values }}
+---
+apiVersion: ako.vmware.com/v1beta1
+kind: HTTPRule
+metadata:
+  name: {{ required "Name is required for httprule" $resource.name }}
+  namespace: {{ include "helpers.prefixNamespace" (dict "namespace" $resource.namespace "global" $global_values) }}
+  labels: {{- include "helpers.labels" (dict "context" $ "customLabels" $resource.labels "defaultLabels" $common_defaults.labels) | nindent 4 }}
+  {{- if or $customAnnotations $common_defaults.annotations }}
+  annotations:
+    {{- include "helpers.annotations" (dict "context" $ "customAnnotations" $customAnnotations "defaultAnnotations" $common_defaults.annotations) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- $specYaml := toYaml $specFields }}
+  {{- $rendered := include "helpers.renderGlobalIfExists" (dict "value" $specYaml "global" $global_values) }}
+  {{- tpl $rendered $ | nindent 2 }}
+{{- end }}
+{{- end }}
+{{- end }}

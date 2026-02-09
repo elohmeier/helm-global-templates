@@ -1,0 +1,8 @@
+l7rules:
+  test-l7rule:
+    name: test-l7rule
+    namespace: test-namespace
+    allowInvalidCACertificates: false
+    performanceLimits:
+      maxConcurrentConnections: 1000
+      maxThroughput: 500

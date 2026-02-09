@@ -1,0 +1,13 @@
+aviinfrasettings:
+  test-aviinfrasetting:
+    name: test-aviinfrasetting
+    network:
+      vipNetworks:
+        - networkName: vip-network
+          cidr: 10.0.0.0/24
+      nodeNetworks:
+        - networkName: node-network
+          cidrs:
+            - 172.16.0.0/16
+    seGroup:
+      name: Default-Group

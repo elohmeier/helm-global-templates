@@ -1,0 +1,80 @@
+suite: Test httprule template
+templates:
+  - template.yaml
+
+tests:
+  - it: should create basic httprule correctly
+    values:
+      - httprule_values.yaml
+    asserts:
+      - equal:
+          path: kind
+          value: HTTPRule
+      - equal:
+          path: apiVersion
+          value: ako.vmware.com/v1beta1
+      - equal:
+          path: metadata.name
+          value: test-httprule
+      - equal:
+          path: metadata.namespace
+          value: test-namespace
+      - equal:
+          path: spec.fqdn
+          value: test.example.com
+
+  - it: should not render httprule if disabled
+    values:
+      - httprule_values.yaml
+    set:
+      httprules.test-httprule.disabled: true
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should set labels correctly
+    values:
+      - httprule_values.yaml
+    set:
+      httprules.test-httprule.labels:
+        custom-label: test-value
+    asserts:
+      - equal:
+          path: metadata.labels["custom-label"]
+          value: test-value
+
+  - it: should set annotations correctly
+    values:
+      - httprule_values.yaml
+    set:
+      httprules.test-httprule.annotations:
+        test-annotation: test-value
+    asserts:
+      - equal:
+          path: metadata.annotations["test-annotation"]
+          value: test-value
+
+  - it: should render global placeholders in spec
+    set:
+      global:
+        app:
+          fqdn: global.example.com
+      httprules:
+        - name: test-httprule
+          namespace: test-namespace
+          fqdn: "{{global.app.fqdn}}"
+          paths:
+            - target: /api
+    asserts:
+      - equal:
+          path: spec.fqdn
+          value: global.example.com
+
+  - it: should fail without name
+    set:
+      httprules:
+        - namespace: test-namespace
+          fqdn: test.example.com
+    asserts:
+      - failedTemplate:
+          errorMessage: "Name is required for httprule"

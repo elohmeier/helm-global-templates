@@ -1,0 +1,10 @@
+hostrules:
+  test-hostrule:
+    name: test-hostrule
+    namespace: test-namespace
+    virtualhost:
+      fqdn: test.example.com
+      tls:
+        sslKeyCertificate:
+          name: test-cert
+          type: ref
