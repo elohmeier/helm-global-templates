@@ -12,7 +12,7 @@ tests:
           value: KafkaTopic
       - equal:
           path: apiVersion
-          value: kafka.strimzi.io/v1beta2
+          value: kafka.strimzi.io/v1
       - equal:
           path: metadata.name
           value: test-topic
@@ -41,13 +41,12 @@ tests:
       - isNull:
           path: spec.clusterRef
 
-  - it: should default topicName to name
+  - it: should not inject topicName when not explicitly set
     values:
       - kafkatopic_values.yaml
     asserts:
-      - equal:
+      - isNull:
           path: spec.topicName
-          value: test-topic
 
   - it: should use explicit topicName when provided
     set:

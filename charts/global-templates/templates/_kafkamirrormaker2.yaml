@@ -1,0 +1,33 @@
+{{/*
+Copyright (C) 2026 XM Cyber
+Author: Devops Infra Team
+*/}}
+
+{{- define "global-templates.kafkamirrormaker2" -}}
+{{- $global_values := .Values.global }}
+{{- $default_values := .Values.kafkamirrormaker2_defaults | default dict }}
+{{- $common_defaults := .Values.common_defaults | default dict }}
+{{- range .kafkamirrormaker2s }}
+{{- if not .disabled }}
+{{- $mm2 := . }}
+{{- $customAnnotations := $mm2.annotations | default dict }}
+{{- $specFields := omit $mm2 "name" "namespace" "labels" "annotations" "disabled" }}
+{{- $specFields = merge $specFields $default_values }}
+---
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaMirrorMaker2
+metadata:
+  name: {{ required "Name is required for kafkamirrormaker2" $mm2.name }}
+  namespace: {{ include "helpers.prefixNamespace" (dict "namespace" $mm2.namespace "global" $global_values) }}
+  labels: {{- include "helpers.labels" (dict "context" $ "customLabels" $mm2.labels "defaultLabels" $common_defaults.labels) | nindent 4 }}
+  {{- if or $customAnnotations $common_defaults.annotations }}
+  annotations:
+    {{- include "helpers.annotations" (dict "context" $ "customAnnotations" $customAnnotations "defaultAnnotations" $common_defaults.annotations) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- $specYaml := toYaml $specFields }}
+  {{- $rendered := include "helpers.renderGlobalIfExists" (dict "value" $specYaml "global" $global_values) }}
+  {{- tpl $rendered $ | nindent 2 }}
+{{- end }}
+{{- end }}
+{{- end }}

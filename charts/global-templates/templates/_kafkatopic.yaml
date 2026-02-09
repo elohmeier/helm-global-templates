@@ -15,12 +15,13 @@ Author: Devops Infra Team
 {{- $clusterLabel := dict "strimzi.io/cluster" $renderedClusterRef }}
 {{- $customLabels := merge ($topic.labels | default dict) $clusterLabel }}
 {{- $customAnnotations := $topic.annotations | default dict }}
-{{- $topicName := $topic.topicName | default $topic.name }}
 {{- $specFields := omit $topic "name" "namespace" "labels" "annotations" "disabled" "clusterRef" }}
-{{- $specFields = merge $specFields (dict "topicName" $topicName) }}
+{{- if $topic.topicName }}
+{{- $specFields = merge $specFields (dict "topicName" $topic.topicName) }}
+{{- end }}
 {{- $specFields = merge $specFields $default_values }}
 ---
-apiVersion: kafka.strimzi.io/v1beta2
+apiVersion: kafka.strimzi.io/v1
 kind: KafkaTopic
 metadata:
   name: {{ required "Name is required for kafkatopic" $topic.name }}

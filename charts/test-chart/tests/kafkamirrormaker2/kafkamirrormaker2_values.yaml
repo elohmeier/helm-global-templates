@@ -1,0 +1,19 @@
+kafkamirrormaker2s:
+  test-mm2:
+    name: test-mm2
+    namespace: test-namespace
+    version: 3.7.0
+    replicas: 1
+    connectCluster: cluster-b
+    clusters:
+      - alias: cluster-a
+        bootstrapServers: cluster-a-kafka-bootstrap:9092
+      - alias: cluster-b
+        bootstrapServers: cluster-b-kafka-bootstrap:9092
+    mirrors:
+      - sourceCluster: cluster-a
+        targetCluster: cluster-b
+        sourceConnector:
+          tasksMax: 1
+        topicsPattern: ".*"
+        groupsPattern: ".*"

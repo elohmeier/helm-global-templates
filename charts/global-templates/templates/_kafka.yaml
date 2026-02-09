@@ -11,13 +11,17 @@ Author: Devops Infra Team
 {{- if not .disabled }}
 {{- $kafka := . }}
 {{- $customAnnotations := $kafka.annotations | default dict }}
-{{- if $kafka.nodePoolsEnabled }}
+{{- $nodePoolsEnabled := true }}
+{{- if hasKey $kafka "nodePoolsEnabled" }}
+{{- $nodePoolsEnabled = $kafka.nodePoolsEnabled }}
+{{- end }}
+{{- if $nodePoolsEnabled }}
 {{- $customAnnotations = merge $customAnnotations (dict "strimzi.io/node-pools" "enabled" "strimzi.io/kraft" "enabled") }}
 {{- end }}
 {{- $specFields := omit $kafka "name" "namespace" "labels" "annotations" "disabled" "nodePoolsEnabled" }}
 {{- $specFields = merge $specFields $default_values }}
 ---
-apiVersion: kafka.strimzi.io/v1beta2
+apiVersion: kafka.strimzi.io/v1
 kind: Kafka
 metadata:
   name: {{ required "Name is required for kafka" $kafka.name }}
