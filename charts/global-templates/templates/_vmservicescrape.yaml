@@ -1,0 +1,57 @@
+{{- define "global-templates.vmservicescrape" -}}
+{{- $global_values := .Values.global }}
+{{- $default_values := .Values.vmservicescrape_defaults }}
+{{- $common_defaults := .Values.common_defaults }}
+{{- range .vmServiceScrapes }}
+{{- if not .disabled }}
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMServiceScrape
+metadata:
+  name: {{ .name | required "VMServiceScrape name required" }}
+  namespace: {{ include "helpers.prefixNamespace" (dict "namespace" .namespace "global" $global_values) }}
+  labels: {{ include "helpers.labels" (dict "context" $ "customLabels" .labels "defaultLabels" $common_defaults.labels) | nindent 4 }}
+  {{- if or .annotations $common_defaults.annotations }}
+  annotations: {{ include "helpers.annotations" (dict "context" $ "customAnnotations" .annotations "defaultAnnotations" $common_defaults.annotations) | nindent 4 }}
+  {{- end }}
+spec:
+  selector:
+    matchLabels: {{- toYaml .selector.matchLabels | nindent 6 }}
+  namespaceSelector:
+    {{- if .namespaceSelector }}
+    {{- toYaml .namespaceSelector | nindent 4 }}
+    {{- else }}
+    matchNames:
+      - {{ include "helpers.prefixNamespace" (dict "namespace" .namespace "global" $global_values) }}
+    {{- end }}
+  endpoints:
+    {{- range .endpoints }}
+    - port: {{ .port }}
+      {{- with .path | default $default_values.path }}
+      path: {{ . }}
+      {{- end }}
+      {{- with .interval | default $default_values.interval }}
+      interval: {{ . }}
+      {{- end }}
+      {{- with .scrapeTimeout | default $default_values.scrapeTimeout }}
+      scrapeTimeout: {{ . }}
+      {{- end }}
+      {{- with .scheme }}
+      scheme: {{ . }}
+      {{- end }}
+      {{- with .tlsConfig }}
+      tlsConfig: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .bearerTokenSecret }}
+      bearerTokenSecret: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .metricRelabelings }}
+      metricRelabelings: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .relabelings }}
+      relabelings: {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
