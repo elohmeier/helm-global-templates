@@ -15,8 +15,22 @@ metadata:
   annotations: {{ include "helpers.annotations" (dict "context" $ "customAnnotations" .annotations "defaultAnnotations" $common_defaults.annotations) | nindent 4 }}
   {{- end }}
 spec:
-  selector:
-    matchLabels: {{- toYaml .selector.matchLabels | nindent 6 }}
+  {{- with .jobLabel }}
+  jobLabel: {{ . }}
+  {{- end }}
+  {{- with .podTargetLabels }}
+  podTargetLabels: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .sampleLimit }}
+  sampleLimit: {{ . }}
+  {{- end }}
+  {{- with .targetLimit }}
+  targetLimit: {{ . }}
+  {{- end }}
+  {{- with .attachMetadata }}
+  attachMetadata: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  selector: {{- toYaml .selector | nindent 4 }}
   namespaceSelector:
     {{- if .namespaceSelector }}
     {{- toYaml .namespaceSelector | nindent 4 }}
@@ -38,6 +52,42 @@ spec:
       {{- end }}
       {{- with .scheme }}
       scheme: {{ . }}
+      {{- end }}
+      {{- with .honorLabels }}
+      honorLabels: {{ . }}
+      {{- end }}
+      {{- with .honorTimestamps }}
+      honorTimestamps: {{ . }}
+      {{- end }}
+      {{- with .params }}
+      params: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .basicAuth }}
+      basicAuth: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .authorization }}
+      authorization: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .oauth2 }}
+      oauth2: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .tlsConfig }}
+      tlsConfig: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .bearerTokenSecret }}
+      bearerTokenSecret: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .proxyUrl }}
+      proxyUrl: {{ . }}
+      {{- end }}
+      {{- with .followRedirects }}
+      followRedirects: {{ . }}
+      {{- end }}
+      {{- with .enableHttp2 }}
+      enableHttp2: {{ . }}
+      {{- end }}
+      {{- with .filterRunning }}
+      filterRunning: {{ . }}
       {{- end }}
       {{- with .metricRelabelings }}
       metricRelabelings: {{- toYaml . | nindent 8 }}

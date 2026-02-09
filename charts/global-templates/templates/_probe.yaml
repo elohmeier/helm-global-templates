@@ -1,0 +1,58 @@
+{{- define "global-templates.probe" -}}
+{{- $global_values := .Values.global }}
+{{- $default_values := .Values.probe_defaults }}
+{{- $common_defaults := .Values.common_defaults }}
+{{- range .probes }}
+{{- if not .disabled }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: {{ .name | required "Probe name required" }}
+  namespace: {{ include "helpers.prefixNamespace" (dict "namespace" .namespace "global" $global_values) }}
+  labels: {{ include "helpers.labels" (dict "context" $ "customLabels" .labels "defaultLabels" $common_defaults.labels) | nindent 4 }}
+  {{- if or .annotations $common_defaults.annotations }}
+  annotations: {{ include "helpers.annotations" (dict "context" $ "customAnnotations" .annotations "defaultAnnotations" $common_defaults.annotations) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- with .jobName }}
+  jobName: {{ . }}
+  {{- end }}
+  prober:
+    url: {{ .prober.url | required "Probe prober.url required" }}
+    {{- with .prober.scheme }}
+    scheme: {{ . }}
+    {{- end }}
+    {{- with .prober.path }}
+    path: {{ . }}
+    {{- end }}
+    {{- with .prober.proxyUrl }}
+    proxyUrl: {{ . }}
+    {{- end }}
+  {{- with .module }}
+  module: {{ . }}
+  {{- end }}
+  {{- with .targets }}
+  targets: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .interval | default $default_values.interval }}
+  interval: {{ . }}
+  {{- end }}
+  {{- with .scrapeTimeout | default $default_values.scrapeTimeout }}
+  scrapeTimeout: {{ . }}
+  {{- end }}
+  {{- with .scrapeClassName }}
+  scrapeClassName: {{ . }}
+  {{- end }}
+  {{- with .sampleLimit }}
+  sampleLimit: {{ . }}
+  {{- end }}
+  {{- with .targetLimit }}
+  targetLimit: {{ . }}
+  {{- end }}
+  {{- with .metricRelabelings }}
+  metricRelabelings: {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

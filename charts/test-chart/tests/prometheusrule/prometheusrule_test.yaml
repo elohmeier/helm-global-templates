@@ -1,0 +1,105 @@
+suite: Test prometheusrule template
+templates:
+  - template.yaml
+
+tests:
+  - it: should create basic PrometheusRule correctly
+    values:
+      - prometheusrule_values.yaml
+    asserts:
+      - equal:
+          path: kind
+          value: PrometheusRule
+      - equal:
+          path: apiVersion
+          value: monitoring.coreos.com/v1
+      - equal:
+          path: metadata.name
+          value: test-prometheusrule
+      - equal:
+          path: metadata.namespace
+          value: test-namespace
+
+  - it: should not render PrometheusRule if disabled
+    values:
+      - prometheusrule_values.yaml
+    set:
+      prometheusRules.test-pr.disabled: true
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should set alerting rule correctly
+    values:
+      - prometheusrule_values.yaml
+    asserts:
+      - equal:
+          path: spec.groups[0].name
+          value: test-alerts
+      - equal:
+          path: spec.groups[0].rules[0].alert
+          value: HighErrorRate
+      - equal:
+          path: spec.groups[0].rules[0].for
+          value: 10m
+      - equal:
+          path: spec.groups[0].rules[0].labels.severity
+          value: critical
+
+  - it: should set recording rule correctly
+    set:
+      prometheusRules:
+        test-pr:
+          name: test-prometheusrule
+          namespace: test-namespace
+          groups:
+            - name: test-recording
+              rules:
+                - record: job:http_requests_total:rate5m
+                  expr: rate(http_requests_total[5m])
+    asserts:
+      - equal:
+          path: spec.groups[0].name
+          value: test-recording
+      - equal:
+          path: spec.groups[0].rules[0].record
+          value: "job:http_requests_total:rate5m"
+
+  - it: should support multiple groups
+    set:
+      prometheusRules:
+        test-pr:
+          name: test-prometheusrule
+          namespace: test-namespace
+          groups:
+            - name: group-1
+              rules:
+                - alert: Alert1
+                  expr: up == 0
+            - name: group-2
+              rules:
+                - alert: Alert2
+                  expr: up == 0
+    asserts:
+      - equal:
+          path: spec.groups[0].name
+          value: group-1
+      - equal:
+          path: spec.groups[1].name
+          value: group-2
+
+  - it: should set custom labels and annotations
+    values:
+      - prometheusrule_values.yaml
+    set:
+      prometheusRules.test-pr.labels:
+        custom-label: test-value
+      prometheusRules.test-pr.annotations:
+        custom-annotation: test-annotation
+    asserts:
+      - equal:
+          path: metadata.labels["custom-label"]
+          value: test-value
+      - equal:
+          path: metadata.annotations["custom-annotation"]
+          value: test-annotation

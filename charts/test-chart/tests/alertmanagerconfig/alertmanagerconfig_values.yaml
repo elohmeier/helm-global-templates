@@ -1,0 +1,21 @@
+alertmanagerConfigs:
+  test-amc:
+    name: test-alertmanagerconfig
+    namespace: test-namespace
+    route:
+      receiver: default
+      groupBy:
+        - alertname
+        - namespace
+      routes:
+        - receiver: critical
+          matchers:
+            - name: severity
+              value: critical
+    receivers:
+      - name: default
+        webhookConfigs:
+          - url: http://webhook.example.com/alerts
+      - name: critical
+        webhookConfigs:
+          - url: http://webhook.example.com/critical-alerts
