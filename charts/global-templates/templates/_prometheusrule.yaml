@@ -1,7 +1,7 @@
 {{- define "global-templates.prometheusrule" -}}
 {{- $global_values := .Values.global }}
 {{- $common_defaults := .Values.common_defaults }}
-{{- range .prometheusRules }}
+{{- range .prometheusrules }}
 {{- if not .disabled }}
 ---
 apiVersion: monitoring.coreos.com/v1

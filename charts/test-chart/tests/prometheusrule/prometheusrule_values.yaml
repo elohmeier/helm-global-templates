@@ -1,4 +1,4 @@
-prometheusRules:
+prometheusrules:
   test-pr:
     name: test-prometheusrule
     namespace: test-namespace

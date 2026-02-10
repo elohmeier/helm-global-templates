@@ -1,10 +1,10 @@
 # PodMonitor
 
-## Parameters for `podMonitors`
+## Parameters for `podmonitors`
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
-| `podMonitors` | Map of maps | Yes | A map containing PodMonitor configurations. Each key defines a PodMonitor. |
+| `podmonitors` | Map of maps | Yes | A map containing PodMonitor configurations. Each key defines a PodMonitor. |
 | `name` | string | Yes | The name of the PodMonitor. |
 | `disabled` | boolean | No | If true, disables the PodMonitor. |
 | `namespace` | string | Yes | The namespace in which the PodMonitor should be created. |
@@ -46,7 +46,7 @@
 ## Example
 
 ```yaml
-podMonitors:
+podmonitors:
   my-pods:
     name: my-pod-monitor
     namespace: my-namespace

@@ -24,7 +24,7 @@ tests:
     values:
       - alertmanagerconfig_values.yaml
     set:
-      alertmanagerConfigs.test-amc.disabled: true
+      alertmanagerconfigs.test-amc.disabled: true
     asserts:
       - hasDocuments:
           count: 0
@@ -73,7 +73,7 @@ tests:
 
   - it: should set inhibitRules
     set:
-      alertmanagerConfigs:
+      alertmanagerconfigs:
         test-amc:
           name: test-alertmanagerconfig
           namespace: test-namespace
@@ -103,7 +103,7 @@ tests:
 
   - it: should set timeIntervals
     set:
-      alertmanagerConfigs:
+      alertmanagerconfigs:
         test-amc:
           name: test-alertmanagerconfig
           namespace: test-namespace
@@ -130,9 +130,9 @@ tests:
     values:
       - alertmanagerconfig_values.yaml
     set:
-      alertmanagerConfigs.test-amc.labels:
+      alertmanagerconfigs.test-amc.labels:
         custom-label: test-value
-      alertmanagerConfigs.test-amc.annotations:
+      alertmanagerconfigs.test-amc.annotations:
         custom-annotation: test-annotation
     asserts:
       - equal:
