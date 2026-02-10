@@ -22,7 +22,20 @@ metadata:
     {{- include "helpers.annotations" (dict "context" $ "customAnnotations" $policy.annotations "defaultAnnotations" $common_defaults.annotations) | nindent 4 }}
   {{- end }}
 spec:
-  {{- include "common.tplvalues.render" (dict "value" (required "spec is required for networkpolicy" $policy.spec) "context" $) | nindent 2 }}
+  {{- if $policy.podSelector }}
+  podSelector: {{- include "common.tplvalues.render" (dict "value" $policy.podSelector "context" $) | nindent 4 }}
+  {{- else }}
+  podSelector: {}
+  {{- end }}
+  {{- if $policy.policyTypes }}
+  policyTypes: {{- include "common.tplvalues.render" (dict "value" $policy.policyTypes "context" $) | nindent 4 }}
+  {{- end }}
+  {{- if $policy.ingress }}
+  ingress: {{- include "common.tplvalues.render" (dict "value" $policy.ingress "context" $) | nindent 4 }}
+  {{- end }}
+  {{- if $policy.egress }}
+  egress: {{- include "common.tplvalues.render" (dict "value" $policy.egress "context" $) | nindent 4 }}
+  {{- end }}
 {{- end }}
 {{- end }}
 {{- end }}
