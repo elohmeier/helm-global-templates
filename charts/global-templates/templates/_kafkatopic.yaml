@@ -10,7 +10,10 @@ Author: Devops Infra Team
 {{- range .kafkatopics }}
 {{- if not .disabled }}
 {{- $topic := . }}
-{{- $clusterRef := required "clusterRef is required for KafkaTopic" $topic.clusterRef }}
+{{- $clusterRef := $topic.clusterRef | default $default_values.clusterRef }}
+{{- if not $clusterRef }}
+{{- fail "clusterRef is required for KafkaTopic" }}
+{{- end }}
 {{- $renderedClusterRef := include "helpers.renderGlobalIfExists" (dict "value" $clusterRef "global" $global_values) }}
 {{- $clusterLabel := dict "strimzi.io/cluster" $renderedClusterRef }}
 {{- $customLabels := merge ($topic.labels | default dict) $clusterLabel }}

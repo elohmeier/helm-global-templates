@@ -10,7 +10,10 @@ Author: Devops Infra Team
 {{- range .kafkarebalances }}
 {{- if not .disabled }}
 {{- $rebalance := . }}
-{{- $clusterRef := required "clusterRef is required for KafkaRebalance" $rebalance.clusterRef }}
+{{- $clusterRef := $rebalance.clusterRef | default $default_values.clusterRef }}
+{{- if not $clusterRef }}
+{{- fail "clusterRef is required for KafkaRebalance" }}
+{{- end }}
 {{- $renderedClusterRef := include "helpers.renderGlobalIfExists" (dict "value" $clusterRef "global" $global_values) }}
 {{- $clusterLabel := dict "strimzi.io/cluster" $renderedClusterRef }}
 {{- $customLabels := merge ($rebalance.labels | default dict) $clusterLabel }}

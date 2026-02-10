@@ -10,7 +10,10 @@ Author: Devops Infra Team
 {{- range .kafkanodepools }}
 {{- if not .disabled }}
 {{- $nodepool := . }}
-{{- $clusterRef := required "clusterRef is required for KafkaNodePool" $nodepool.clusterRef }}
+{{- $clusterRef := $nodepool.clusterRef | default $default_values.clusterRef }}
+{{- if not $clusterRef }}
+{{- fail "clusterRef is required for KafkaNodePool" }}
+{{- end }}
 {{- $renderedClusterRef := include "helpers.renderGlobalIfExists" (dict "value" $clusterRef "global" $global_values) }}
 {{- $clusterLabel := dict "strimzi.io/cluster" $renderedClusterRef }}
 {{- $customLabels := merge ($nodepool.labels | default dict) $clusterLabel }}
