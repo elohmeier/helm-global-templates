@@ -10,7 +10,10 @@ Author: Devops Infra Team
 {{- range .kafkausers }}
 {{- if not .disabled }}
 {{- $user := . }}
-{{- $clusterRef := required "clusterRef is required for KafkaUser" $user.clusterRef }}
+{{- $clusterRef := $user.clusterRef | default $default_values.clusterRef }}
+{{- if not $clusterRef }}
+{{- fail "clusterRef is required for KafkaUser" }}
+{{- end }}
 {{- $renderedClusterRef := include "helpers.renderGlobalIfExists" (dict "value" $clusterRef "global" $global_values) }}
 {{- $clusterLabel := dict "strimzi.io/cluster" $renderedClusterRef }}
 {{- $customLabels := merge ($user.labels | default dict) $clusterLabel }}

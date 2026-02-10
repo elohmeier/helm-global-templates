@@ -10,7 +10,10 @@ Author: Devops Infra Team
 {{- range .kafkaconnectors }}
 {{- if not .disabled }}
 {{- $connector := . }}
-{{- $clusterRef := required "clusterRef is required for KafkaConnector" $connector.clusterRef }}
+{{- $clusterRef := $connector.clusterRef | default $default_values.clusterRef }}
+{{- if not $clusterRef }}
+{{- fail "clusterRef is required for KafkaConnector" }}
+{{- end }}
 {{- $renderedClusterRef := include "helpers.renderGlobalIfExists" (dict "value" $clusterRef "global" $global_values) }}
 {{- $clusterLabel := dict "strimzi.io/cluster" $renderedClusterRef }}
 {{- $customLabels := merge ($connector.labels | default dict) $clusterLabel }}
