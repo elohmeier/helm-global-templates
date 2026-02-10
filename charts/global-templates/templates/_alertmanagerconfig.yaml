@@ -1,7 +1,7 @@
 {{- define "global-templates.alertmanagerconfig" -}}
 {{- $global_values := .Values.global }}
 {{- $common_defaults := .Values.common_defaults }}
-{{- range .alertmanagerConfigs }}
+{{- range .alertmanagerconfigs }}
 {{- if not .disabled }}
 ---
 apiVersion: monitoring.coreos.com/v1beta1

@@ -24,7 +24,7 @@ tests:
     values:
       - prometheusrule_values.yaml
     set:
-      prometheusRules.test-pr.disabled: true
+      prometheusrules.test-pr.disabled: true
     asserts:
       - hasDocuments:
           count: 0
@@ -48,7 +48,7 @@ tests:
 
   - it: should set recording rule correctly
     set:
-      prometheusRules:
+      prometheusrules:
         test-pr:
           name: test-prometheusrule
           namespace: test-namespace
@@ -67,7 +67,7 @@ tests:
 
   - it: should support multiple groups
     set:
-      prometheusRules:
+      prometheusrules:
         test-pr:
           name: test-prometheusrule
           namespace: test-namespace
@@ -92,9 +92,9 @@ tests:
     values:
       - prometheusrule_values.yaml
     set:
-      prometheusRules.test-pr.labels:
+      prometheusrules.test-pr.labels:
         custom-label: test-value
-      prometheusRules.test-pr.annotations:
+      prometheusrules.test-pr.annotations:
         custom-annotation: test-annotation
     asserts:
       - equal:

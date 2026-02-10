@@ -1,4 +1,4 @@
-serviceMonitors:
+servicemonitors:
   test-sm:
     name: test-servicemonitor
     namespace: test-namespace

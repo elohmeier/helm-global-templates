@@ -57,7 +57,7 @@ tests:
     values:
       - servicemonitor_values.yaml
     set:
-      serviceMonitors.test-sm.disabled: true
+      servicemonitors.test-sm.disabled: true
     asserts:
       - hasDocuments:
           count: 0
@@ -66,9 +66,9 @@ tests:
     values:
       - servicemonitor_values.yaml
     set:
-      serviceMonitors.test-sm.labels:
+      servicemonitors.test-sm.labels:
         custom-label: test-value
-      serviceMonitors.test-sm.annotations:
+      servicemonitors.test-sm.annotations:
         custom-annotation: test-annotation
     asserts:
       - equal:
@@ -82,7 +82,7 @@ tests:
     values:
       - servicemonitor_values.yaml
     set:
-      serviceMonitors.test-sm.jobLabel: my-job
+      servicemonitors.test-sm.jobLabel: my-job
     asserts:
       - equal:
           path: spec.jobLabel
@@ -92,7 +92,7 @@ tests:
     values:
       - servicemonitor_values.yaml
     set:
-      serviceMonitors.test-sm.targetLabels:
+      servicemonitors.test-sm.targetLabels:
         - instance
         - job
     asserts:
@@ -107,7 +107,7 @@ tests:
     values:
       - servicemonitor_values.yaml
     set:
-      serviceMonitors.test-sm.podTargetLabels:
+      servicemonitors.test-sm.podTargetLabels:
         - pod
     asserts:
       - equal:
@@ -118,8 +118,8 @@ tests:
     values:
       - servicemonitor_values.yaml
     set:
-      serviceMonitors.test-sm.sampleLimit: 5000
-      serviceMonitors.test-sm.targetLimit: 100
+      servicemonitors.test-sm.sampleLimit: 5000
+      servicemonitors.test-sm.targetLimit: 100
     asserts:
       - equal:
           path: spec.sampleLimit
@@ -132,7 +132,7 @@ tests:
     values:
       - servicemonitor_values.yaml
     set:
-      serviceMonitors.test-sm.attachMetadata:
+      servicemonitors.test-sm.attachMetadata:
         node: true
     asserts:
       - equal:
@@ -141,7 +141,7 @@ tests:
 
   - it: should support selector with matchExpressions
     set:
-      serviceMonitors:
+      servicemonitors:
         test-sm:
           name: test-servicemonitor
           namespace: test-namespace
@@ -171,7 +171,7 @@ tests:
     values:
       - servicemonitor_values.yaml
     set:
-      serviceMonitors.test-sm.namespaceSelector:
+      servicemonitors.test-sm.namespaceSelector:
         any: true
     asserts:
       - equal:
@@ -182,7 +182,7 @@ tests:
     values:
       - servicemonitor_values.yaml
     set:
-      serviceMonitors.test-sm.endpoints:
+      servicemonitors.test-sm.endpoints:
         - port: http-metrics
           honorLabels: true
     asserts:
@@ -194,7 +194,7 @@ tests:
     values:
       - servicemonitor_values.yaml
     set:
-      serviceMonitors.test-sm.endpoints:
+      servicemonitors.test-sm.endpoints:
         - port: http-metrics
           honorTimestamps: true
     asserts:
@@ -206,7 +206,7 @@ tests:
     values:
       - servicemonitor_values.yaml
     set:
-      serviceMonitors.test-sm.endpoints:
+      servicemonitors.test-sm.endpoints:
         - port: http-metrics
           tlsConfig:
             insecureSkipVerify: true
@@ -223,7 +223,7 @@ tests:
     values:
       - servicemonitor_values.yaml
     set:
-      serviceMonitors.test-sm.endpoints:
+      servicemonitors.test-sm.endpoints:
         - port: http-metrics
           basicAuth:
             username:
@@ -244,7 +244,7 @@ tests:
     values:
       - servicemonitor_values.yaml
     set:
-      serviceMonitors.test-sm.endpoints:
+      servicemonitors.test-sm.endpoints:
         - port: http-metrics
           bearerTokenSecret:
             name: token-secret
@@ -258,7 +258,7 @@ tests:
     values:
       - servicemonitor_values.yaml
     set:
-      serviceMonitors.test-sm.endpoints:
+      servicemonitors.test-sm.endpoints:
         - port: http-metrics
           filterRunning: true
     asserts:
@@ -270,7 +270,7 @@ tests:
     values:
       - servicemonitor_values.yaml
     set:
-      serviceMonitors.test-sm.endpoints:
+      servicemonitors.test-sm.endpoints:
         - port: http-metrics
           path: /custom-metrics
           interval: 60s
@@ -290,7 +290,7 @@ tests:
     values:
       - servicemonitor_values.yaml
     set:
-      serviceMonitors.test-sm.endpoints:
+      servicemonitors.test-sm.endpoints:
         - port: http-metrics
           metricRelabelings:
             - sourceLabels: [__name__]
@@ -305,7 +305,7 @@ tests:
     values:
       - servicemonitor_values.yaml
     set:
-      serviceMonitors.test-sm.endpoints:
+      servicemonitors.test-sm.endpoints:
         - port: http-metrics
           relabelings:
             - sourceLabels: [__meta_kubernetes_pod_label_app]

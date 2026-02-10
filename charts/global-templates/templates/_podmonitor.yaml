@@ -2,7 +2,7 @@
 {{- $global_values := .Values.global }}
 {{- $default_values := .Values.podmonitor_defaults }}
 {{- $common_defaults := .Values.common_defaults }}
-{{- range .podMonitors }}
+{{- range .podmonitors }}
 {{- if not .disabled }}
 ---
 apiVersion: monitoring.coreos.com/v1

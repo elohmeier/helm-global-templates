@@ -1,4 +1,4 @@
-alertmanagerConfigs:
+alertmanagerconfigs:
   test-amc:
     name: test-alertmanagerconfig
     namespace: test-namespace

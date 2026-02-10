@@ -1,4 +1,4 @@
-podMonitors:
+podmonitors:
   test-pm:
     name: test-podmonitor
     namespace: test-namespace

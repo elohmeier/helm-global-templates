@@ -1,10 +1,10 @@
 # PrometheusRule
 
-## Parameters for `prometheusRules`
+## Parameters for `prometheusrules`
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
-| `prometheusRules` | Map of maps | Yes | A map containing PrometheusRule configurations. Each key defines a PrometheusRule. |
+| `prometheusrules` | Map of maps | Yes | A map containing PrometheusRule configurations. Each key defines a PrometheusRule. |
 | `name` | string | Yes | The name of the PrometheusRule. |
 | `disabled` | boolean | No | If true, disables the PrometheusRule. |
 | `namespace` | string | Yes | The namespace in which the PrometheusRule should be created. |
@@ -29,7 +29,7 @@
 ## Example
 
 ```yaml
-prometheusRules:
+prometheusrules:
   my-rules:
     name: my-prometheus-rules
     namespace: my-namespace

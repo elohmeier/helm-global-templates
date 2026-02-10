@@ -1,10 +1,10 @@
 # AlertmanagerConfig
 
-## Parameters for `alertmanagerConfigs`
+## Parameters for `alertmanagerconfigs`
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
-| `alertmanagerConfigs` | Map of maps | Yes | A map containing AlertmanagerConfig configurations. Each key defines an AlertmanagerConfig. |
+| `alertmanagerconfigs` | Map of maps | Yes | A map containing AlertmanagerConfig configurations. Each key defines an AlertmanagerConfig. |
 | `name` | string | Yes | The name of the AlertmanagerConfig. |
 | `disabled` | boolean | No | If true, disables the AlertmanagerConfig. |
 | `namespace` | string | Yes | The namespace in which the AlertmanagerConfig should be created. |
@@ -18,7 +18,7 @@
 ## Example
 
 ```yaml
-alertmanagerConfigs:
+alertmanagerconfigs:
   my-alerts:
     name: my-alertmanager-config
     namespace: my-namespace

@@ -1,10 +1,10 @@
 # ServiceMonitor
 
-## Parameters for `serviceMonitors`
+## Parameters for `servicemonitors`
 
 | Parameter | Type | Required | Description |
 | --- | --- | --- | --- |
-| `serviceMonitors` | Map of maps | Yes | A map containing ServiceMonitor configurations. Each key defines a ServiceMonitor. |
+| `servicemonitors` | Map of maps | Yes | A map containing ServiceMonitor configurations. Each key defines a ServiceMonitor. |
 | `name` | string | Yes | The name of the ServiceMonitor. |
 | `disabled` | boolean | No | If true, disables the ServiceMonitor. |
 | `namespace` | string | Yes | The namespace in which the ServiceMonitor should be created. |
@@ -47,7 +47,7 @@
 ## Example
 
 ```yaml
-serviceMonitors:
+servicemonitors:
   my-service:
     name: my-service-monitor
     namespace: my-namespace

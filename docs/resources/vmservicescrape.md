@@ -1,10 +1,10 @@
 # VMServiceScrape (VictoriaMetrics)
 
-## Parameters for `vmServiceScrapes`
+## Parameters for `vmservicescrapes`
 
 | Parameter                                | Type         | Required | Description                                                                                                |
 | ---------------------------------------- | ------------ | -------- | ---------------------------------------------------------------------------------------------------------- |
-| `vmServiceScrapes`                       | List of maps | Yes      | A list containing VMServiceScrape configurations. Each item in the list defines a VMServiceScrape.         |
+| `vmservicescrapes`                       | List of maps | Yes      | A list containing VMServiceScrape configurations. Each item in the list defines a VMServiceScrape.         |
 | `name`                                   | string       | Yes      | The name of the VMServiceScrape.                                                                           |
 | `disabled`                               | boolean      | No       | If true, disables the VMServiceScrape.                                                                     |
 | `namespace`                              | string       | Yes      | The namespace in which the VMServiceScrape should be created.                                              |
@@ -26,7 +26,7 @@
 ## Example of a Simple VMServiceScrape
 
 ```yaml
-vmServiceScrapes:
+vmservicescrapes:
   - name: api-scrape
     namespace: my-namespace
     selector:

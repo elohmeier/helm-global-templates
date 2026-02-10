@@ -57,7 +57,7 @@ tests:
     values:
       - podmonitor_values.yaml
     set:
-      podMonitors.test-pm.disabled: true
+      podmonitors.test-pm.disabled: true
     asserts:
       - hasDocuments:
           count: 0
@@ -66,9 +66,9 @@ tests:
     values:
       - podmonitor_values.yaml
     set:
-      podMonitors.test-pm.labels:
+      podmonitors.test-pm.labels:
         custom-label: test-value
-      podMonitors.test-pm.annotations:
+      podmonitors.test-pm.annotations:
         custom-annotation: test-annotation
     asserts:
       - equal:
@@ -82,7 +82,7 @@ tests:
     values:
       - podmonitor_values.yaml
     set:
-      podMonitors.test-pm.jobLabel: my-job
+      podmonitors.test-pm.jobLabel: my-job
     asserts:
       - equal:
           path: spec.jobLabel
@@ -92,7 +92,7 @@ tests:
     values:
       - podmonitor_values.yaml
     set:
-      podMonitors.test-pm.podTargetLabels:
+      podmonitors.test-pm.podTargetLabels:
         - pod
     asserts:
       - equal:
@@ -103,8 +103,8 @@ tests:
     values:
       - podmonitor_values.yaml
     set:
-      podMonitors.test-pm.sampleLimit: 5000
-      podMonitors.test-pm.targetLimit: 100
+      podmonitors.test-pm.sampleLimit: 5000
+      podmonitors.test-pm.targetLimit: 100
     asserts:
       - equal:
           path: spec.sampleLimit
@@ -117,7 +117,7 @@ tests:
     values:
       - podmonitor_values.yaml
     set:
-      podMonitors.test-pm.podMetricsEndpoints:
+      podmonitors.test-pm.podMetricsEndpoints:
         - port: http-metrics
           tlsConfig:
             insecureSkipVerify: true
@@ -130,7 +130,7 @@ tests:
     values:
       - podmonitor_values.yaml
     set:
-      podMonitors.test-pm.podMetricsEndpoints:
+      podmonitors.test-pm.podMetricsEndpoints:
         - port: http-metrics
           bearerTokenSecret:
             name: token-secret
@@ -144,7 +144,7 @@ tests:
     values:
       - podmonitor_values.yaml
     set:
-      podMonitors.test-pm.podMetricsEndpoints:
+      podmonitors.test-pm.podMetricsEndpoints:
         - port: http-metrics
           honorLabels: true
     asserts:
@@ -156,7 +156,7 @@ tests:
     values:
       - podmonitor_values.yaml
     set:
-      podMonitors.test-pm.podMetricsEndpoints:
+      podmonitors.test-pm.podMetricsEndpoints:
         - port: http-metrics
           filterRunning: true
     asserts:
@@ -168,7 +168,7 @@ tests:
     values:
       - podmonitor_values.yaml
     set:
-      podMonitors.test-pm.namespaceSelector:
+      podmonitors.test-pm.namespaceSelector:
         any: true
     asserts:
       - equal:
@@ -179,7 +179,7 @@ tests:
     values:
       - podmonitor_values.yaml
     set:
-      podMonitors.test-pm.podMetricsEndpoints:
+      podmonitors.test-pm.podMetricsEndpoints:
         - port: http-metrics
           metricRelabelings:
             - sourceLabels: [__name__]
@@ -194,7 +194,7 @@ tests:
     values:
       - podmonitor_values.yaml
     set:
-      podMonitors.test-pm.podMetricsEndpoints:
+      podmonitors.test-pm.podMetricsEndpoints:
         - port: http-metrics
           path: /custom-metrics
           interval: 60s

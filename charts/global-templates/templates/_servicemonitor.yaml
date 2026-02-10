@@ -2,7 +2,7 @@
 {{- $global_values := .Values.global }}
 {{- $default_values := .Values.servicemonitor_defaults }}
 {{- $common_defaults := .Values.common_defaults }}
-{{- range .serviceMonitors }}
+{{- range .servicemonitors }}
 {{- if not .disabled }}
 ---
 apiVersion: monitoring.coreos.com/v1
