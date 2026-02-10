@@ -10,7 +10,10 @@
 | `namespace`       | string       | No       | The namespace in which the NetworkPolicy should be created. Defaults to the release namespace.           |
 | `labels`          | map          | No       | Custom labels for the NetworkPolicy.                                                                     |
 | `annotations`     | map          | No       | Annotations for the NetworkPolicy metadata.                                                              |
-| `spec`            | map          | Yes      | The full NetworkPolicy spec. Passed directly and supports template rendering.                            |
+| `podSelector`     | map          | No       | Pod selector for the NetworkPolicy. Defaults to `{}` (select all pods) if not specified.                 |
+| `policyTypes`     | list         | No       | List of policy types (e.g., `Ingress`, `Egress`). Supports template rendering.                           |
+| `ingress`         | list         | No       | List of ingress rules. Supports template rendering.                                                      |
+| `egress`          | list         | No       | List of egress rules. Supports template rendering.                                                       |
 
 ## Example of a Simple NetworkPolicy
 
@@ -18,18 +21,17 @@
 networkpolicies:
   - name: allow-web-traffic
     namespace: my-namespace
-    spec:
-      podSelector:
-        matchLabels:
-          app: web
-      policyTypes:
-        - Ingress
-      ingress:
-        - from:
-            - namespaceSelector:
-                matchLabels:
-                  purpose: web
-          ports:
-            - protocol: TCP
-              port: 80
+    podSelector:
+      matchLabels:
+        app: web
+    policyTypes:
+      - Ingress
+    ingress:
+      - from:
+          - namespaceSelector:
+              matchLabels:
+                purpose: web
+        ports:
+          - protocol: TCP
+            port: 80
 ```
