@@ -43,6 +43,10 @@ spec:
     parameters:
       {{- toYaml .postgresql.parameters | nindent 6 }}
     {{- end }}
+    {{- if .postgresql.extensions }}
+    extensions:
+      {{- toYaml .postgresql.extensions | nindent 6 }}
+    {{- end }}
   {{- end }}
   {{- if .resources }}
   resources:
