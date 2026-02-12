@@ -149,6 +149,15 @@ spec:
               {{- if $value.secret }}
               secret:
                 secretName: {{ include "helpers.renderGlobalIfExists" (dict "value" ($value.secret.secretName) "global" $global_values) }}
+                {{- if $value.secret.items }}
+                items:
+                  {{- range $value.secret.items }}
+                  - key: {{ .key }}
+                    {{- if .path }}
+                    path: {{ .path }}
+                    {{- end }}
+                  {{- end }}
+                {{- end }}
               {{- end }}
               {{- if $value.projected }}
               projected: {{- include "common.tplvalues.render" (dict "value" $value.projected "context" $) | nindent 18 }}
@@ -164,6 +173,30 @@ spec:
                   - key: {{ .key }}
                     path: {{ .path }}
                   {{- end }}
+              {{- end }}
+              {{- if $value.hostPath }}
+              hostPath:
+                path: {{ include "helpers.renderGlobalIfExists" (dict "value" ($value.hostPath.path) "global" $global_values) }}
+                {{- if $value.hostPath.type }}
+                type: {{ $value.hostPath.type }}
+                {{- end }}
+              {{- end }}
+              {{- if $value.emptyDir }}
+              emptyDir: {{- toYaml $value.emptyDir | nindent 16 }}
+              {{- end }}
+              {{- if $value.persistentVolumeClaim }}
+              persistentVolumeClaim:
+                claimName: {{ include "helpers.renderGlobalIfExists" (dict "value" ($value.persistentVolumeClaim.claimName) "global" $global_values) }}
+                {{- if $value.persistentVolumeClaim.readOnly }}
+                readOnly: {{ $value.persistentVolumeClaim.readOnly }}
+                {{- end }}
+              {{- end }}
+              {{- if $value.image }}
+              image:
+                reference: {{ include "helpers.renderGlobalIfExists" (dict "value" ($value.image.reference) "global" $global_values) }}
+                {{- if $value.image.pullPolicy }}
+                pullPolicy: {{ $value.image.pullPolicy }}
+                {{- end }}
               {{- end }}
             {{- end }}
           {{- else }}
