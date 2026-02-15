@@ -36,6 +36,10 @@ spec:
     roles:
       {{- toYaml .managed.roles | nindent 6 }}
     {{- end }}
+    {{- if .managed.services }}
+    services:
+      {{- toYaml .managed.services | nindent 6 }}
+    {{- end }}
   {{- end }}
   {{- if .postgresql }}
   postgresql:
