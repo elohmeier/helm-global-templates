@@ -1,0 +1,83 @@
+suite: Test generator template
+templates:
+  - template.yaml
+
+tests:
+  - it: should create a Fake generator correctly
+    values:
+      - generator_values.yaml
+    asserts:
+      - equal:
+          path: apiVersion
+          value: generators.external-secrets.io/v1alpha1
+      - equal:
+          path: kind
+          value: Fake
+      - equal:
+          path: metadata.name
+          value: my-fake-generator
+      - equal:
+          path: metadata.namespace
+          value: test-namespace
+      - equal:
+          path: spec.data.password
+          value: secret123
+      - equal:
+          path: spec.data.username
+          value: admin
+
+  - it: should create a Password generator correctly
+    set:
+      generators:
+        password-gen:
+          name: my-password-generator
+          namespace: test-namespace
+          kind: Password
+          length: 64
+          symbols: 0
+          allowRepeat: true
+    asserts:
+      - equal:
+          path: apiVersion
+          value: generators.external-secrets.io/v1alpha1
+      - equal:
+          path: kind
+          value: Password
+      - equal:
+          path: metadata.name
+          value: my-password-generator
+      - equal:
+          path: spec.length
+          value: 64
+      - equal:
+          path: spec.symbols
+          value: 0
+      - equal:
+          path: spec.allowRepeat
+          value: true
+
+  - it: should not render if disabled
+    values:
+      - generator_values.yaml
+    set:
+      generators.fake-gen.disabled: true
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should not include metadata fields in spec
+    values:
+      - generator_values.yaml
+    asserts:
+      - notExists:
+          path: spec.name
+      - notExists:
+          path: spec.namespace
+      - notExists:
+          path: spec.kind
+      - notExists:
+          path: spec.disabled
+      - notExists:
+          path: spec.labels
+      - notExists:
+          path: spec.annotations
