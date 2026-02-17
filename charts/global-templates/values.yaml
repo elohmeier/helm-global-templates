@@ -43,6 +43,8 @@ exports:
 
     service_defaults:
 
+    generator_defaults: {}
+
     externalsecret_defaults:
       refreshInterval: "1h"
       secretStoreRef:

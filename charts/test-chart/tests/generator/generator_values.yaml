@@ -1,0 +1,8 @@
+generators:
+  fake-gen:
+    name: my-fake-generator
+    namespace: test-namespace
+    kind: Fake
+    data:
+      password: secret123
+      username: admin

@@ -1,0 +1,26 @@
+{{- define "global-templates.generator" -}}
+{{- $global_values := .Values.global }}
+{{- $default_values := .Values.generator_defaults | default dict }}
+{{- $common_defaults := .Values.common_defaults | default dict }}
+{{- $releaseNamespace := .Release.Namespace | default "default" }}
+{{- range .generators }}
+{{- if not .disabled }}
+{{- $generator := . }}
+{{- $specFields := omit $generator "name" "namespace" "labels" "annotations" "disabled" "kind" }}
+{{- $namespace := $generator.namespace | default $releaseNamespace }}
+---
+apiVersion: generators.external-secrets.io/v1alpha1
+kind: {{ required "kind is required for Generator" $generator.kind }}
+metadata:
+  name: {{ required "Name is required for Generator" $generator.name }}
+  namespace: {{ include "helpers.prefixNamespace" (dict "namespace" $namespace "global" $global_values) }}
+  labels: {{- include "helpers.labels" (dict "context" $ "customLabels" $generator.labels "defaultLabels" $common_defaults.labels) | nindent 4 }}
+  {{- if or $generator.annotations $common_defaults.annotations }}
+  annotations:
+    {{- include "helpers.annotations" (dict "context" $ "customAnnotations" $generator.annotations "defaultAnnotations" $common_defaults.annotations) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- toYaml $specFields | nindent 2 }}
+{{- end }}
+{{- end }}
+{{- end }}
