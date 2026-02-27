@@ -22,12 +22,15 @@ metadata:
   {{- end }}
 spec:
   selector:
-    app: {{ .name }}
+    app: {{ .selectorApp | default .name }}
     {{- include "common.labels.matchLabels" $ | nindent 4 }}
     {{- if .selector }}
     {{- include "common.tplvalues.render" ( dict "value" .selector "context" $) | nindent 4 }}
     {{- end }}
   type: {{ $type }}
+  {{- if .publishNotReadyAddresses }}
+  publishNotReadyAddresses: {{ .publishNotReadyAddresses }}
+  {{- end }}
   {{- if .sessionAffinity }}
   sessionAffinity: {{ .sessionAffinity }}
   {{- end }}

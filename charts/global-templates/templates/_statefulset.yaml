@@ -20,14 +20,19 @@ metadata:
   annotations: {{ include "helpers.annotations" (dict "context" $ "customAnnotations" .annotations "defaultAnnotations" $common_defaults.annotations "reloaderEnabled" .reloaderEnabled) | nindent 4 }}
   {{- end }}
 spec:
-  serviceName: {{ .name | default (include "common.names.fullname" $) }}
+  serviceName: {{ .serviceName | default .name | default (include "common.names.fullname" $) }}
   {{- if and (not (eq .replicas nil)) (not $default_values.autoscaling.enabled) }}
   replicas: {{ .replicas }}
   {{- end}}
+  {{- if .podManagementPolicy }}
+  podManagementPolicy: {{ .podManagementPolicy }}
+  {{- end }}
   {{- if .revisionHistoryLimit }}
   revisionHistoryLimit: {{ .revisionHistoryLimit }}
   {{- end }}
-  {{- if .strategy }}
+  {{- if .updateStrategy }}
+  updateStrategy: {{- toYaml .updateStrategy | nindent 4 }}
+  {{- else if .strategy }}
   strategy: {{- toYaml .strategy | nindent 4 }}
   {{- end }}
   selector:
