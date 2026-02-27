@@ -27,7 +27,7 @@ Author: Devops Infra Team
 {{- fail "storage is required for KafkaNodePool" }}
 {{- end }}
 ---
-apiVersion: kafka.strimzi.io/v1
+apiVersion: kafka.strimzi.io/v1beta2
 kind: KafkaNodePool
 metadata:
   name: {{ include "helpers.renderGlobalIfExists" (dict "value" (required "Name is required for kafkanodepool" $nodepool.name) "global" $global_values) }}
