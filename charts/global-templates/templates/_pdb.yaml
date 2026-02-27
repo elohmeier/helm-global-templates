@@ -20,7 +20,11 @@ metadata:
   annotations: {{ include "helpers.annotations" (dict "context" $ "customAnnotations" .annotations "defaultAnnotations" $common_defaults.annotations "reloaderEnabled" .reloaderEnabled) | nindent 4 }}
   {{- end }}
 spec:
+  {{- if .maxUnavailable }}
+  maxUnavailable: {{ .maxUnavailable }}
+  {{- else }}
   minAvailable: {{ .minAvailable | default $default_values.minAvailable }}
+  {{- end }}
   selector:
     matchLabels: {{ .matchLabels | default $default_values.matchLabels | toYaml | nindent 6 }}
 {{- end }}
