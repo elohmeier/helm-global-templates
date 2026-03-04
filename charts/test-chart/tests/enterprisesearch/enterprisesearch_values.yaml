@@ -1,0 +1,8 @@
+enterprisesearches:
+  test-entsearch:
+    name: test-entsearch
+    namespace: test-namespace
+    version: "8.15.0"
+    count: 1
+    elasticsearchRef:
+      name: test-es

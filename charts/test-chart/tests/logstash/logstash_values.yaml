@@ -1,0 +1,14 @@
+logstashes:
+  test-logstash:
+    name: test-logstash
+    namespace: test-namespace
+    version: "8.15.0"
+    count: 1
+    elasticsearchRefs:
+      - clusterName: test-es
+        name: test-es
+    pipelines:
+      - pipeline.id: main
+        config.string: |
+          input { beats { port => 5044 } }
+          output { elasticsearch { hosts => ["https://test-es-es-http:9200"] } }

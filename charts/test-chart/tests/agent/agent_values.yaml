@@ -1,0 +1,14 @@
+agents:
+  test-agent:
+    name: test-agent
+    namespace: test-namespace
+    version: "8.15.0"
+    elasticsearchRefs:
+      - name: test-es
+    daemonSet: {}
+    config:
+      id: test-agent
+      inputs:
+        - type: system/metrics
+          data_stream.namespace: default
+          use_output: default

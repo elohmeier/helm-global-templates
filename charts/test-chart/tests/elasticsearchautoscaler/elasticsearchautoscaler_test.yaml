@@ -1,0 +1,94 @@
+suite: Test elasticsearchautoscaler template
+templates:
+  - template.yaml
+
+tests:
+  - it: should create basic elasticsearchautoscaler correctly
+    values:
+      - elasticsearchautoscaler_values.yaml
+    asserts:
+      - equal:
+          path: kind
+          value: ElasticsearchAutoscaler
+      - equal:
+          path: apiVersion
+          value: autoscaling.k8s.elastic.co/v1alpha1
+      - equal:
+          path: metadata.name
+          value: test-autoscaler
+      - equal:
+          path: metadata.namespace
+          value: test-namespace
+      - equal:
+          path: spec.elasticsearchRef.name
+          value: test-es
+      - equal:
+          path: spec.policies[0].name
+          value: data-policy
+
+  - it: should not render elasticsearchautoscaler if disabled
+    values:
+      - elasticsearchautoscaler_values.yaml
+    set:
+      elasticsearchautoscalers.test-autoscaler.disabled: true
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should set labels correctly
+    values:
+      - elasticsearchautoscaler_values.yaml
+    set:
+      elasticsearchautoscalers.test-autoscaler.labels:
+        custom-label: test-value
+    asserts:
+      - equal:
+          path: metadata.labels["custom-label"]
+          value: test-value
+
+  - it: should set annotations correctly
+    values:
+      - elasticsearchautoscaler_values.yaml
+    set:
+      elasticsearchautoscalers.test-autoscaler.annotations:
+        test-annotation: test-value
+    asserts:
+      - equal:
+          path: metadata.annotations["test-annotation"]
+          value: test-value
+
+  - it: should render global placeholders in spec
+    set:
+      global:
+        elastic:
+          cluster: test-es
+      elasticsearchautoscalers:
+        - name: test-autoscaler
+          namespace: test-namespace
+          elasticsearchRef:
+            name: "{{global.elastic.cluster}}"
+          policies:
+            - name: data-policy
+              roles:
+                - data
+              resources:
+                nodeCount:
+                  min: 3
+                  max: 8
+    asserts:
+      - equal:
+          path: spec.elasticsearchRef.name
+          value: test-es
+
+  - it: should render global placeholders in annotations
+    values:
+      - elasticsearchautoscaler_values.yaml
+    set:
+      global:
+        env: production
+      elasticsearchautoscalers.test-autoscaler.annotations:
+        environment: "{{global.env}}"
+    asserts:
+      - equal:
+          path: metadata.annotations["environment"]
+          value: production

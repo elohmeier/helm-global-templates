@@ -1,0 +1,19 @@
+elasticsearches:
+  test-es:
+    name: test-es
+    namespace: test-namespace
+    version: "8.15.0"
+    nodeSets:
+      - name: default
+        count: 3
+        config:
+          node.store.allow_mmap: false
+        volumeClaimTemplates:
+          - metadata:
+              name: elasticsearch-data
+            spec:
+              accessModes:
+                - ReadWriteOnce
+              resources:
+                requests:
+                  storage: 10Gi

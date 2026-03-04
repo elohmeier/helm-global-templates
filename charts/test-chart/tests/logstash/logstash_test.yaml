@@ -1,0 +1,92 @@
+suite: Test logstash template
+templates:
+  - template.yaml
+
+tests:
+  - it: should create basic logstash correctly
+    values:
+      - logstash_values.yaml
+    asserts:
+      - equal:
+          path: kind
+          value: Logstash
+      - equal:
+          path: apiVersion
+          value: logstash.k8s.elastic.co/v1alpha1
+      - equal:
+          path: metadata.name
+          value: test-logstash
+      - equal:
+          path: metadata.namespace
+          value: test-namespace
+      - equal:
+          path: spec.version
+          value: "8.15.0"
+      - equal:
+          path: spec.count
+          value: 1
+      - equal:
+          path: spec.elasticsearchRefs[0].name
+          value: test-es
+
+  - it: should not render logstash if disabled
+    values:
+      - logstash_values.yaml
+    set:
+      logstashes.test-logstash.disabled: true
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should set labels correctly
+    values:
+      - logstash_values.yaml
+    set:
+      logstashes.test-logstash.labels:
+        custom-label: test-value
+    asserts:
+      - equal:
+          path: metadata.labels["custom-label"]
+          value: test-value
+
+  - it: should set annotations correctly
+    values:
+      - logstash_values.yaml
+    set:
+      logstashes.test-logstash.annotations:
+        test-annotation: test-value
+    asserts:
+      - equal:
+          path: metadata.annotations["test-annotation"]
+          value: test-value
+
+  - it: should render global placeholders in spec
+    set:
+      global:
+        elastic:
+          version: "8.15.0"
+      logstashes:
+        - name: test-logstash
+          namespace: test-namespace
+          version: "{{global.elastic.version}}"
+          count: 1
+          elasticsearchRefs:
+            - clusterName: test-es
+              name: test-es
+    asserts:
+      - equal:
+          path: spec.version
+          value: "8.15.0"
+
+  - it: should render global placeholders in annotations
+    values:
+      - logstash_values.yaml
+    set:
+      global:
+        env: production
+      logstashes.test-logstash.annotations:
+        environment: "{{global.env}}"
+    asserts:
+      - equal:
+          path: metadata.annotations["environment"]
+          value: production

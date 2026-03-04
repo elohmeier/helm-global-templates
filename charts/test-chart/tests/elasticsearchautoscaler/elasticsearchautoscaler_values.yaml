@@ -1,0 +1,17 @@
+elasticsearchautoscalers:
+  test-autoscaler:
+    name: test-autoscaler
+    namespace: test-namespace
+    elasticsearchRef:
+      name: test-es
+    policies:
+      - name: data-policy
+        roles:
+          - data
+        resources:
+          nodeCount:
+            min: 3
+            max: 8
+          storage:
+            min: 64Gi
+            max: 512Gi

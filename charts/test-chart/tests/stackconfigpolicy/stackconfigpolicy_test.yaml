@@ -1,0 +1,84 @@
+suite: Test stackconfigpolicy template
+templates:
+  - template.yaml
+
+tests:
+  - it: should create basic stackconfigpolicy correctly
+    values:
+      - stackconfigpolicy_values.yaml
+    asserts:
+      - equal:
+          path: kind
+          value: StackConfigPolicy
+      - equal:
+          path: apiVersion
+          value: stackconfigpolicy.k8s.elastic.co/v1alpha1
+      - equal:
+          path: metadata.name
+          value: test-policy
+      - equal:
+          path: metadata.namespace
+          value: test-namespace
+      - equal:
+          path: spec.resourceSelector.matchLabels["common.k8s.elastic.co/type"]
+          value: elasticsearch
+
+  - it: should not render stackconfigpolicy if disabled
+    values:
+      - stackconfigpolicy_values.yaml
+    set:
+      stackconfigpolicies.test-policy.disabled: true
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should set labels correctly
+    values:
+      - stackconfigpolicy_values.yaml
+    set:
+      stackconfigpolicies.test-policy.labels:
+        custom-label: test-value
+    asserts:
+      - equal:
+          path: metadata.labels["custom-label"]
+          value: test-value
+
+  - it: should set annotations correctly
+    values:
+      - stackconfigpolicy_values.yaml
+    set:
+      stackconfigpolicies.test-policy.annotations:
+        test-annotation: test-value
+    asserts:
+      - equal:
+          path: metadata.annotations["test-annotation"]
+          value: test-value
+
+  - it: should render global placeholders in spec
+    set:
+      global:
+        elastic:
+          type: elasticsearch
+      stackconfigpolicies:
+        - name: test-policy
+          namespace: test-namespace
+          resourceSelector:
+            matchLabels:
+              common.k8s.elastic.co/type: "{{global.elastic.type}}"
+    asserts:
+      - equal:
+          path: spec.resourceSelector.matchLabels["common.k8s.elastic.co/type"]
+          value: elasticsearch
+
+  - it: should render global placeholders in annotations
+    values:
+      - stackconfigpolicy_values.yaml
+    set:
+      global:
+        env: production
+      stackconfigpolicies.test-policy.annotations:
+        environment: "{{global.env}}"
+    asserts:
+      - equal:
+          path: metadata.annotations["environment"]
+          value: production

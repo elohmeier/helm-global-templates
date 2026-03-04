@@ -1,0 +1,91 @@
+suite: Test enterprisesearch template
+templates:
+  - template.yaml
+
+tests:
+  - it: should create basic enterprisesearch correctly
+    values:
+      - enterprisesearch_values.yaml
+    asserts:
+      - equal:
+          path: kind
+          value: EnterpriseSearch
+      - equal:
+          path: apiVersion
+          value: enterprisesearch.k8s.elastic.co/v1
+      - equal:
+          path: metadata.name
+          value: test-entsearch
+      - equal:
+          path: metadata.namespace
+          value: test-namespace
+      - equal:
+          path: spec.version
+          value: "8.15.0"
+      - equal:
+          path: spec.count
+          value: 1
+      - equal:
+          path: spec.elasticsearchRef.name
+          value: test-es
+
+  - it: should not render enterprisesearch if disabled
+    values:
+      - enterprisesearch_values.yaml
+    set:
+      enterprisesearches.test-entsearch.disabled: true
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should set labels correctly
+    values:
+      - enterprisesearch_values.yaml
+    set:
+      enterprisesearches.test-entsearch.labels:
+        custom-label: test-value
+    asserts:
+      - equal:
+          path: metadata.labels["custom-label"]
+          value: test-value
+
+  - it: should set annotations correctly
+    values:
+      - enterprisesearch_values.yaml
+    set:
+      enterprisesearches.test-entsearch.annotations:
+        test-annotation: test-value
+    asserts:
+      - equal:
+          path: metadata.annotations["test-annotation"]
+          value: test-value
+
+  - it: should render global placeholders in spec
+    set:
+      global:
+        elastic:
+          version: "8.15.0"
+      enterprisesearches:
+        - name: test-entsearch
+          namespace: test-namespace
+          version: "{{global.elastic.version}}"
+          count: 1
+          elasticsearchRef:
+            name: test-es
+    asserts:
+      - equal:
+          path: spec.version
+          value: "8.15.0"
+
+  - it: should render global placeholders in annotations
+    values:
+      - enterprisesearch_values.yaml
+    set:
+      global:
+        env: production
+      enterprisesearches.test-entsearch.annotations:
+        environment: "{{global.env}}"
+    asserts:
+      - equal:
+          path: metadata.annotations["environment"]
+          value: production

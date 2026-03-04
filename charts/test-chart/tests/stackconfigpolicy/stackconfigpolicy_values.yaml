@@ -1,0 +1,10 @@
+stackconfigpolicies:
+  test-policy:
+    name: test-policy
+    namespace: test-namespace
+    resourceSelector:
+      matchLabels:
+        common.k8s.elastic.co/type: elasticsearch
+    elasticsearch:
+      clusterSettings:
+        indices.recovery.max_bytes_per_sec: 100mb

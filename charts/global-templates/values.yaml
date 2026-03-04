@@ -194,4 +194,24 @@ exports:
 
     aviinfrasetting_defaults:
 
+    elasticsearch_defaults:
+
+    kibana_defaults:
+
+    logstash_defaults:
+
+    beat_defaults:
+
+    agent_defaults:
+
+    apmserver_defaults:
+
+    enterprisesearch_defaults:
+
+    elasticmapsserver_defaults:
+
+    stackconfigpolicy_defaults:
+
+    elasticsearchautoscaler_defaults:
+
     networkpolicy_defaults:

@@ -1,0 +1,91 @@
+suite: Test apmserver template
+templates:
+  - template.yaml
+
+tests:
+  - it: should create basic apmserver correctly
+    values:
+      - apmserver_values.yaml
+    asserts:
+      - equal:
+          path: kind
+          value: ApmServer
+      - equal:
+          path: apiVersion
+          value: apm.k8s.elastic.co/v1
+      - equal:
+          path: metadata.name
+          value: test-apm
+      - equal:
+          path: metadata.namespace
+          value: test-namespace
+      - equal:
+          path: spec.version
+          value: "8.15.0"
+      - equal:
+          path: spec.count
+          value: 1
+      - equal:
+          path: spec.elasticsearchRef.name
+          value: test-es
+
+  - it: should not render apmserver if disabled
+    values:
+      - apmserver_values.yaml
+    set:
+      apmservers.test-apm.disabled: true
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should set labels correctly
+    values:
+      - apmserver_values.yaml
+    set:
+      apmservers.test-apm.labels:
+        custom-label: test-value
+    asserts:
+      - equal:
+          path: metadata.labels["custom-label"]
+          value: test-value
+
+  - it: should set annotations correctly
+    values:
+      - apmserver_values.yaml
+    set:
+      apmservers.test-apm.annotations:
+        test-annotation: test-value
+    asserts:
+      - equal:
+          path: metadata.annotations["test-annotation"]
+          value: test-value
+
+  - it: should render global placeholders in spec
+    set:
+      global:
+        elastic:
+          version: "8.15.0"
+      apmservers:
+        - name: test-apm
+          namespace: test-namespace
+          version: "{{global.elastic.version}}"
+          count: 1
+          elasticsearchRef:
+            name: test-es
+    asserts:
+      - equal:
+          path: spec.version
+          value: "8.15.0"
+
+  - it: should render global placeholders in annotations
+    values:
+      - apmserver_values.yaml
+    set:
+      global:
+        env: production
+      apmservers.test-apm.annotations:
+        environment: "{{global.env}}"
+    asserts:
+      - equal:
+          path: metadata.annotations["environment"]
+          value: production

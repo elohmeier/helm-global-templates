@@ -1,0 +1,88 @@
+suite: Test agent template
+templates:
+  - template.yaml
+
+tests:
+  - it: should create basic agent correctly
+    values:
+      - agent_values.yaml
+    asserts:
+      - equal:
+          path: kind
+          value: Agent
+      - equal:
+          path: apiVersion
+          value: agent.k8s.elastic.co/v1alpha1
+      - equal:
+          path: metadata.name
+          value: test-agent
+      - equal:
+          path: metadata.namespace
+          value: test-namespace
+      - equal:
+          path: spec.version
+          value: "8.15.0"
+      - equal:
+          path: spec.elasticsearchRefs[0].name
+          value: test-es
+
+  - it: should not render agent if disabled
+    values:
+      - agent_values.yaml
+    set:
+      agents.test-agent.disabled: true
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should set labels correctly
+    values:
+      - agent_values.yaml
+    set:
+      agents.test-agent.labels:
+        custom-label: test-value
+    asserts:
+      - equal:
+          path: metadata.labels["custom-label"]
+          value: test-value
+
+  - it: should set annotations correctly
+    values:
+      - agent_values.yaml
+    set:
+      agents.test-agent.annotations:
+        test-annotation: test-value
+    asserts:
+      - equal:
+          path: metadata.annotations["test-annotation"]
+          value: test-value
+
+  - it: should render global placeholders in spec
+    set:
+      global:
+        elastic:
+          version: "8.15.0"
+      agents:
+        - name: test-agent
+          namespace: test-namespace
+          version: "{{global.elastic.version}}"
+          elasticsearchRefs:
+            - name: test-es
+          daemonSet: {}
+    asserts:
+      - equal:
+          path: spec.version
+          value: "8.15.0"
+
+  - it: should render global placeholders in annotations
+    values:
+      - agent_values.yaml
+    set:
+      global:
+        env: production
+      agents.test-agent.annotations:
+        environment: "{{global.env}}"
+    asserts:
+      - equal:
+          path: metadata.annotations["environment"]
+          value: production

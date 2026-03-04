@@ -1,0 +1,91 @@
+suite: Test beat template
+templates:
+  - template.yaml
+
+tests:
+  - it: should create basic beat correctly
+    values:
+      - beat_values.yaml
+    asserts:
+      - equal:
+          path: kind
+          value: Beat
+      - equal:
+          path: apiVersion
+          value: beat.k8s.elastic.co/v1beta1
+      - equal:
+          path: metadata.name
+          value: test-beat
+      - equal:
+          path: metadata.namespace
+          value: test-namespace
+      - equal:
+          path: spec.version
+          value: "8.15.0"
+      - equal:
+          path: spec.type
+          value: filebeat
+      - equal:
+          path: spec.elasticsearchRef.name
+          value: test-es
+
+  - it: should not render beat if disabled
+    values:
+      - beat_values.yaml
+    set:
+      beats.test-beat.disabled: true
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should set labels correctly
+    values:
+      - beat_values.yaml
+    set:
+      beats.test-beat.labels:
+        custom-label: test-value
+    asserts:
+      - equal:
+          path: metadata.labels["custom-label"]
+          value: test-value
+
+  - it: should set annotations correctly
+    values:
+      - beat_values.yaml
+    set:
+      beats.test-beat.annotations:
+        test-annotation: test-value
+    asserts:
+      - equal:
+          path: metadata.annotations["test-annotation"]
+          value: test-value
+
+  - it: should render global placeholders in spec
+    set:
+      global:
+        elastic:
+          version: "8.15.0"
+      beats:
+        - name: test-beat
+          namespace: test-namespace
+          version: "{{global.elastic.version}}"
+          type: filebeat
+          elasticsearchRef:
+            name: test-es
+    asserts:
+      - equal:
+          path: spec.version
+          value: "8.15.0"
+
+  - it: should render global placeholders in annotations
+    values:
+      - beat_values.yaml
+    set:
+      global:
+        env: production
+      beats.test-beat.annotations:
+        environment: "{{global.env}}"
+    asserts:
+      - equal:
+          path: metadata.annotations["environment"]
+          value: production

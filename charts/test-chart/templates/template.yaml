@@ -44,3 +44,13 @@
 {{ include "global-templates.aviinfrasetting" (dict "aviinfrasettings" .Values.aviinfrasettings "Chart" .Chart "Release" .Release "Capabilities" .Capabilities "Files" .Files "Template" .Template "Values" .Values) }}
 {{ include "global-templates.generator" (dict "generators" .Values.generators "Chart" .Chart "Release" .Release "Capabilities" .Capabilities "Files" .Files "Template" .Template "Values" .Values) }}
 {{ include "global-templates.route" (dict "routes" .Values.routes "Chart" .Chart "Release" .Release "Capabilities" .Capabilities "Files" .Files "Template" .Template "Values" .Values) }}
+{{ include "global-templates.elasticsearch" (dict "elasticsearches" .Values.elasticsearches "Chart" .Chart "Release" .Release "Capabilities" .Capabilities "Files" .Files "Template" .Template "Values" .Values) }}
+{{ include "global-templates.kibana" (dict "kibanas" .Values.kibanas "Chart" .Chart "Release" .Release "Capabilities" .Capabilities "Files" .Files "Template" .Template "Values" .Values) }}
+{{ include "global-templates.logstash" (dict "logstashes" .Values.logstashes "Chart" .Chart "Release" .Release "Capabilities" .Capabilities "Files" .Files "Template" .Template "Values" .Values) }}
+{{ include "global-templates.beat" (dict "beats" .Values.beats "Chart" .Chart "Release" .Release "Capabilities" .Capabilities "Files" .Files "Template" .Template "Values" .Values) }}
+{{ include "global-templates.agent" (dict "agents" .Values.agents "Chart" .Chart "Release" .Release "Capabilities" .Capabilities "Files" .Files "Template" .Template "Values" .Values) }}
+{{ include "global-templates.apmserver" (dict "apmservers" .Values.apmservers "Chart" .Chart "Release" .Release "Capabilities" .Capabilities "Files" .Files "Template" .Template "Values" .Values) }}
+{{ include "global-templates.enterprisesearch" (dict "enterprisesearches" .Values.enterprisesearches "Chart" .Chart "Release" .Release "Capabilities" .Capabilities "Files" .Files "Template" .Template "Values" .Values) }}
+{{ include "global-templates.elasticmapsserver" (dict "elasticmapsservers" .Values.elasticmapsservers "Chart" .Chart "Release" .Release "Capabilities" .Capabilities "Files" .Files "Template" .Template "Values" .Values) }}
+{{ include "global-templates.stackconfigpolicy" (dict "stackconfigpolicies" .Values.stackconfigpolicies "Chart" .Chart "Release" .Release "Capabilities" .Capabilities "Files" .Files "Template" .Template "Values" .Values) }}
+{{ include "global-templates.elasticsearchautoscaler" (dict "elasticsearchautoscalers" .Values.elasticsearchautoscalers "Chart" .Chart "Release" .Release "Capabilities" .Capabilities "Files" .Files "Template" .Template "Values" .Values) }}

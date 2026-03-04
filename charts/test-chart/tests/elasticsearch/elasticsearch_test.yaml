@@ -1,0 +1,91 @@
+suite: Test elasticsearch template
+templates:
+  - template.yaml
+
+tests:
+  - it: should create basic elasticsearch correctly
+    values:
+      - elasticsearch_values.yaml
+    asserts:
+      - equal:
+          path: kind
+          value: Elasticsearch
+      - equal:
+          path: apiVersion
+          value: elasticsearch.k8s.elastic.co/v1
+      - equal:
+          path: metadata.name
+          value: test-es
+      - equal:
+          path: metadata.namespace
+          value: test-namespace
+      - equal:
+          path: spec.version
+          value: "8.15.0"
+      - equal:
+          path: spec.nodeSets[0].name
+          value: default
+      - equal:
+          path: spec.nodeSets[0].count
+          value: 3
+
+  - it: should not render elasticsearch if disabled
+    values:
+      - elasticsearch_values.yaml
+    set:
+      elasticsearches.test-es.disabled: true
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should set labels correctly
+    values:
+      - elasticsearch_values.yaml
+    set:
+      elasticsearches.test-es.labels:
+        custom-label: test-value
+    asserts:
+      - equal:
+          path: metadata.labels["custom-label"]
+          value: test-value
+
+  - it: should set annotations correctly
+    values:
+      - elasticsearch_values.yaml
+    set:
+      elasticsearches.test-es.annotations:
+        test-annotation: test-value
+    asserts:
+      - equal:
+          path: metadata.annotations["test-annotation"]
+          value: test-value
+
+  - it: should render global placeholders in spec
+    set:
+      global:
+        elastic:
+          version: "8.15.0"
+      elasticsearches:
+        - name: test-es
+          namespace: test-namespace
+          version: "{{global.elastic.version}}"
+          nodeSets:
+            - name: default
+              count: 3
+    asserts:
+      - equal:
+          path: spec.version
+          value: "8.15.0"
+
+  - it: should render global placeholders in annotations
+    values:
+      - elasticsearch_values.yaml
+    set:
+      global:
+        env: production
+      elasticsearches.test-es.annotations:
+        environment: "{{global.env}}"
+    asserts:
+      - equal:
+          path: metadata.annotations["environment"]
+          value: production
