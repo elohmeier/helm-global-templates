@@ -215,3 +215,5 @@ exports:
     elasticsearchautoscaler_defaults:
 
     networkpolicy_defaults:
+
+    ciliumnetworkpolicy_defaults:

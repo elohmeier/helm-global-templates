@@ -1,0 +1,37 @@
+{{/*
+Copyright (C) 2026 XM Cyber
+Author: Devops Infra Team
+*/}}
+
+{{- define "global-templates.ciliumnetworkpolicy" -}}
+{{- $global_values := .Values.global }}
+{{- $common_defaults := .Values.common_defaults | default dict }}
+{{- range $name, $policy := .ciliumnetworkpolicies }}
+{{- if not $policy.disabled }}
+{{- $namespace := include "helpers.namespace" (dict "ns" ($policy.namespace | default "") "overrideNs" $.Release.Namespace) }}
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: {{ $policy.name | default $name }}
+  namespace: {{ include "helpers.prefixNamespace" (dict "namespace" $namespace "global" $global_values) }}
+  labels: {{- include "helpers.labels" (dict "context" $ "customLabels" $policy.labels "defaultLabels" $common_defaults.labels) | nindent 4 }}
+  {{- if or $policy.annotations $common_defaults.annotations }}
+  annotations:
+    {{- include "helpers.annotations" (dict "context" $ "customAnnotations" $policy.annotations "defaultAnnotations" $common_defaults.annotations) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if $policy.spec }}
+  {{- include "common.tplvalues.render" (dict "value" $policy.spec "context" $) | nindent 2 }}
+  {{- else }}
+  endpointSelector: {{- include "common.tplvalues.render" (dict "value" ($policy.endpointSelector | required "endpointSelector is required for ciliumnetworkpolicy") "context" $) | nindent 4 }}
+  {{- with $policy.ingress }}
+  ingress: {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 4 }}
+  {{- end }}
+  {{- with $policy.egress }}
+  egress: {{- include "common.tplvalues.render" (dict "value" . "context" $) | nindent 4 }}
+  {{- end }}
+  {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

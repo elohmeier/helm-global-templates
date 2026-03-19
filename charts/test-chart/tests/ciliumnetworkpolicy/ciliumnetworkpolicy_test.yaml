@@ -1,0 +1,106 @@
+suite: Test CiliumNetworkPolicy template
+templates:
+  - template.yaml
+
+tests:
+  - it: should create basic cilium network policy correctly
+    values:
+      - ciliumnetworkpolicy_values.yaml
+    asserts:
+      - equal:
+          path: kind
+          value: CiliumNetworkPolicy
+      - equal:
+          path: apiVersion
+          value: cilium.io/v2
+      - equal:
+          path: metadata.name
+          value: app-egress
+      - equal:
+          path: metadata.namespace
+          value: NAMESPACE
+      - equal:
+          path: spec.endpointSelector.matchLabels.app
+          value: test-app
+      - equal:
+          path: spec.egress[0].toFQDNs[0].matchName
+          value: api.stripe.com
+
+  - it: should set labels and annotations correctly
+    values:
+      - ciliumnetworkpolicy_values.yaml
+    set:
+      ciliumnetworkpolicies.app-egress.labels:
+        custom-label: test-value
+      ciliumnetworkpolicies.app-egress.annotations:
+        test-annotation: test-value
+    asserts:
+      - equal:
+          path: metadata.labels["custom-label"]
+          value: test-value
+      - equal:
+          path: metadata.annotations["test-annotation"]
+          value: test-value
+
+  - it: should render raw spec when provided
+    values:
+      - ciliumnetworkpolicy_values.yaml
+    set:
+      ciliumnetworkpolicies.app-egress.spec:
+        endpointSelector:
+          matchLabels:
+            app: raw-app
+        ingress:
+          - fromEntities:
+              - ingress
+    asserts:
+      - equal:
+          path: spec.endpointSelector.matchLabels.app
+          value: raw-app
+      - equal:
+          path: spec.ingress[0].fromEntities[0]
+          value: ingress
+      - notExists:
+          path: spec.egress
+
+  - it: should render templated values inside spec shortcuts
+    values:
+      - ciliumnetworkpolicy_values.yaml
+    set:
+      global.ciliumFqdn: smtp.tem.scaleway.com
+      ciliumnetworkpolicies.app-egress.egress[0].toFQDNs[0].matchName: "{{ .Values.global.ciliumFqdn }}"
+    asserts:
+      - equal:
+          path: spec.egress[0].toFQDNs[0].matchName
+          value: smtp.tem.scaleway.com
+
+  - it: should default name from map key
+    values:
+      - ciliumnetworkpolicy_values.yaml
+    set:
+      ciliumnetworkpolicies.app-egress.name: null
+    asserts:
+      - equal:
+          path: metadata.name
+          value: app-egress
+
+  - it: should not render policy if disabled
+    values:
+      - ciliumnetworkpolicy_values.yaml
+    set:
+      ciliumnetworkpolicies.app-egress.disabled: true
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should fail without endpointSelector when spec is omitted
+    set:
+      ciliumnetworkpolicies:
+        invalid-policy:
+          namespace: test-namespace
+          egress:
+            - toEntities:
+                - world
+    asserts:
+      - failedTemplate:
+          errorMessage: "endpointSelector is required for ciliumnetworkpolicy"

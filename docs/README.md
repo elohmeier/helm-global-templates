@@ -23,6 +23,8 @@
 - [PrometheusRule](https://github.com/XMCyber/helm-global-templates/blob/master/docs/resources/prometheusrule.md)
 - [Probe](https://github.com/XMCyber/helm-global-templates/blob/master/docs/resources/probe.md)
 - [AlertmanagerConfig](https://github.com/XMCyber/helm-global-templates/blob/master/docs/resources/alertmanagerconfig.md)
+- [NetworkPolicy](https://github.com/XMCyber/helm-global-templates/blob/master/docs/resources/networkpolicy.md)
+- [CiliumNetworkPolicy](https://github.com/XMCyber/helm-global-templates/blob/master/docs/resources/ciliumnetworkpolicy.md)
 
 > **Note:** If you need a resource that is not listed here, feel free to open an issue or a pull request. we prefer pull requests :)
 

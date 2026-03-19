@@ -1,0 +1,13 @@
+ciliumnetworkpolicies:
+  app-egress:
+    namespace: test-namespace
+    endpointSelector:
+      matchLabels:
+        app: test-app
+    egress:
+      - toFQDNs:
+          - matchName: api.stripe.com
+        toPorts:
+          - ports:
+              - port: "443"
+                protocol: TCP
