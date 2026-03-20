@@ -184,7 +184,11 @@ spec:
               {{- end }}
           {{- end }}
           {{- if $value.emptyDir }}
+          {{- if kindIs "map" $value.emptyDir }}
+          emptyDir: {{ $value.emptyDir | toYaml }}
+          {{- else }}
           emptyDir: {}
+          {{- end }}
           {{- end }}
           {{- if $value.hostPath }}
           hostPath:

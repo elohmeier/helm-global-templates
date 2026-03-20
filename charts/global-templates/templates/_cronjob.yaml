@@ -182,7 +182,11 @@ spec:
                 {{- end }}
               {{- end }}
               {{- if $value.emptyDir }}
-              emptyDir: {{- toYaml $value.emptyDir | nindent 16 }}
+              {{- if kindIs "map" $value.emptyDir }}
+              emptyDir: {{ $value.emptyDir | toYaml }}
+              {{- else }}
+              emptyDir: {}
+              {{- end }}
               {{- end }}
               {{- if $value.persistentVolumeClaim }}
               persistentVolumeClaim:

@@ -212,8 +212,12 @@ spec:
             type: {{ $value.hostPath.type }}
             {{- end }}
           {{- end }}
-          {{- if (hasKey $value "emptyDir") }}
-          emptyDir: {{- toYaml $value.emptyDir | nindent 12 }}
+          {{- if $value.emptyDir }}
+          {{- if kindIs "map" $value.emptyDir }}
+          emptyDir: {{ $value.emptyDir | toYaml }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
           {{- end }}
           {{- if $value.persistentVolumeClaim }}
           persistentVolumeClaim:
