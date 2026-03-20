@@ -54,6 +54,9 @@ spec:
       initContainers:
       {{- range .initContainers }}
         - name: {{ include "helpers.renderGlobalIfExists" (dict "value" (required "Name is required for each init container" .name | quote) "global" $global_values) }}
+          {{- if .securityContext }}
+          securityContext: {{- include "common.tplvalues.render" (dict "value" .securityContext "context" $) | nindent 12 }}
+          {{- end }}
           image: {{ include "helpers.image.fullPath" (dict "container" . "global" $global_values) }}
           imagePullPolicy: {{ include "helpers.renderGlobalIfExists" (dict "value" (.imagePullPolicy | default $default_values.imagePullPolicy) "global" $global_values) }}
           {{- if .workingDir }}
