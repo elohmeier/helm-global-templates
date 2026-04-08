@@ -185,7 +185,8 @@ spec:
           {{- end }}
           {{- if $value.emptyDir }}
           {{- if kindIs "map" $value.emptyDir }}
-          emptyDir: {{ $value.emptyDir | toYaml }}
+          emptyDir:
+{{ $value.emptyDir | toYaml | indent 12 }}
           {{- else }}
           emptyDir: {}
           {{- end }}
