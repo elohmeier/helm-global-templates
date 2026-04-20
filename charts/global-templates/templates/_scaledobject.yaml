@@ -9,6 +9,14 @@ Author: Devops Infra Team
 {{- $common_defaults := .Values.common_defaults }}
 {{- range .scaledobjects }}
 {{- if not .disabled }}
+{{- $minReplicas := $default_values.minReplicas }}
+{{- if hasKey . "minReplicas" }}
+{{- $minReplicas = .minReplicas }}
+{{- end }}
+{{- $maxReplicas := $default_values.maxReplicas }}
+{{- if hasKey . "maxReplicas" }}
+{{- $maxReplicas = .maxReplicas }}
+{{- end }}
 ---
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
@@ -20,8 +28,8 @@ metadata:
   annotations: {{ include "helpers.annotations" (dict "context" $ "customAnnotations" .annotations "defaultAnnotations" $common_defaults.annotations "reloaderEnabled" .reloaderEnabled) | nindent 4 }}
   {{- end }}
 spec:
-  minReplicaCount: {{ include "helpers.renderGlobalIfExists" (dict "value" (.minReplicas | default $default_values.minReplicas) "global" $global_values) | int }}
-  maxReplicaCount: {{ include "helpers.renderGlobalIfExists" (dict "value" (.maxReplicas | default $default_values.maxReplicas) "global" $global_values) | int }}
+  minReplicaCount: {{ include "helpers.renderGlobalIfExists" (dict "value" $minReplicas "global" $global_values) | int }}
+  maxReplicaCount: {{ include "helpers.renderGlobalIfExists" (dict "value" $maxReplicas "global" $global_values) | int }}
   pollingInterval: {{ .pollingInterval | default $default_values.pollingInterval }}
   scaleTargetRef:
     apiVersion: {{ .targetApiVersion | default $default_values.targetApiVersion }}

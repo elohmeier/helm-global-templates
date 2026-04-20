@@ -146,3 +146,13 @@ tests:
       - equal:
           path: spec.metrics[2].pods.targetAverageValue
           value: 5
+
+  - it: should preserve explicit zero minReplicas
+    values:
+      - hpa_values.yaml
+    set:
+      hpas.app-hpa.minReplicas: 0
+    asserts:
+      - equal:
+          path: spec.minReplicas
+          value: 0

@@ -78,3 +78,13 @@ tests:
       - equal:
           path: spec.maxReplicaCount
           value: 50
+
+  - it: should preserve explicit zero minReplicas
+    values:
+      - scaledobject_values.yaml
+    set:
+      scaledobjects.app-scaledobject.minReplicas: 0
+    asserts:
+      - equal:
+          path: spec.minReplicaCount
+          value: 0

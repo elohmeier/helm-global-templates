@@ -9,6 +9,14 @@ Author: Devops Infra Team
 {{- $common_defaults := .Values.common_defaults }}
 {{- range .hpas }}
 {{- if not .disabled }}
+{{- $minReplicas := $default_values.minReplicas }}
+{{- if hasKey . "minReplicas" }}
+{{- $minReplicas = .minReplicas }}
+{{- end }}
+{{- $maxReplicas := $default_values.maxReplicas }}
+{{- if hasKey . "maxReplicas" }}
+{{- $maxReplicas = .maxReplicas }}
+{{- end }}
 ---
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
@@ -20,8 +28,8 @@ metadata:
   annotations: {{ include "helpers.annotations" (dict "context" $ "customAnnotations" .annotations "defaultAnnotations" $common_defaults.annotations "reloaderEnabled" .reloaderEnabled) | nindent 4 }}
   {{- end }}
 spec:
-  minReplicas: {{ .minReplicas | default $default_values.minReplicas }}
-  maxReplicas: {{ .maxReplicas | default $default_values.maxReplicas }}
+  minReplicas: {{ $minReplicas }}
+  maxReplicas: {{ $maxReplicas }}
   scaleTargetRef:
     apiVersion: {{ .targetApiVersion | default $default_values.targetApiVersion }}
     kind: {{ .targetKind | default $default_values.targetKind }}
