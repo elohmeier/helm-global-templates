@@ -15,9 +15,12 @@
 | `labels`               | map          | No       | Custom labels for the DaemonSet.                                                                            |
 | `annotations`          | map          | No       | Annotations for the DaemonSet metadata.                                                                     |
 | `reloaderEnabled`      | boolean      | No       | If true, enables specific reloader annotations.                                                             |
+| `selector`             | map          | No       | Full DaemonSet selector object. Defaults to `matchLabels.app=<name>`.                                        |
 | `podAnnotations`       | map          | No       | Annotations to be added to the pod template.                                                                |
 | `podLabels`            | map          | No       | Custom labels for the pod template.                                                                         |
 | `serviceAccountName`   | string       | No       | The service account name used by the DaemonSet. Defaults to `serviceAccountName` in `daemonset_defaults`.   |
+| `hostNetwork`          | boolean      | No       | Whether pods should use the host network namespace.                                                         |
+| `dnsPolicy`            | string       | No       | Pod DNS policy, for example `ClusterFirstWithHostNet` when `hostNetwork` is enabled.                        |
 
 ## Container-Level Parameters
 

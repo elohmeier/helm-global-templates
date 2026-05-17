@@ -37,8 +37,12 @@ spec:
   updateStrategy: {{- toYaml $default_values.updateStrategy | nindent 4 }}
   {{- end }}
   selector:
+    {{- if .selector }}
+    {{- include "common.tplvalues.render" (dict "value" .selector "context" $) | nindent 4 }}
+    {{- else }}
     matchLabels:
       app: {{ .name | default (include "common.names.fullname" $) }}
+    {{- end }}
   template:
     metadata:
       {{- if .podAnnotations }}
@@ -52,6 +56,12 @@ spec:
         {{- end }}
     spec:
       serviceAccountName: {{ .serviceAccountName | default $default_values.serviceAccountName | default "default" }}
+      {{- if hasKey . "hostNetwork" }}
+      hostNetwork: {{ .hostNetwork }}
+      {{- end }}
+      {{- if .dnsPolicy }}
+      dnsPolicy: {{ .dnsPolicy }}
+      {{- end }}
       {{- if .initContainers }}
       initContainers:
       {{- range .initContainers }}
