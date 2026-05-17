@@ -1,0 +1,189 @@
+suite: Test daemonset template
+templates:
+  - template.yaml
+
+tests:
+  - it: should create basic daemonset correctly
+    values:
+      - daemonset_values.yaml
+    asserts:
+      - equal:
+          path: kind
+          value: DaemonSet
+      - equal:
+          path: apiVersion
+          value: apps/v1
+      - equal:
+          path: metadata.name
+          value: node-agent
+      - equal:
+          path: metadata.namespace
+          value: test-namespace
+      - equal:
+          path: metadata.labels.app
+          value: node-agent
+
+  - it: should set daemonset spec fields correctly
+    values:
+      - daemonset_values.yaml
+    asserts:
+      - equal:
+          path: spec.revisionHistoryLimit
+          value: 5
+      - equal:
+          path: spec.minReadySeconds
+          value: 10
+      - equal:
+          path: spec.updateStrategy.type
+          value: RollingUpdate
+      - equal:
+          path: spec.updateStrategy.rollingUpdate.maxUnavailable
+          value: 1
+      - notExists:
+          path: spec.replicas
+
+  - it: should configure containers and init containers correctly
+    values:
+      - daemonset_values.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].name
+          value: agent
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: docker.io/busybox:1.0.0
+      - equal:
+          path: spec.template.spec.containers[0].ports[0].containerPort
+          value: 9100
+      - equal:
+          path: spec.template.spec.containers[0].imagePullPolicy
+          value: Always
+      - equal:
+          path: spec.template.spec.initContainers[0].name
+          value: init-agent
+      - equal:
+          path: spec.template.spec.initContainers[0].envFrom[0].configMapRef.name
+          value: init-agent-config-rendered
+
+  - it: should render scheduling and pod fields correctly
+    values:
+      - daemonset_values.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: agent-sa
+      - equal:
+          path: spec.template.spec.imagePullSecrets[0].name
+          value: my-secret
+      - equal:
+          path: spec.template.spec.nodeSelector["kubernetes.io/os"]
+          value: linux
+      - equal:
+          path: spec.template.spec.tolerations[0].key
+          value: dedicated
+      - equal:
+          path: spec.template.spec.tolerations[0].value
+          value: node-agent
+      - equal:
+          path: spec.template.spec.securityContext.runAsNonRoot
+          value: true
+      - equal:
+          path: spec.template.spec.enableServiceLinks
+          value: false
+      - equal:
+          path: spec.template.spec.terminationGracePeriodSeconds
+          value: 30
+
+  - it: should set volumes and mounts correctly
+    values:
+      - daemonset_values.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.volumes[0].name
+          value: config-volume
+      - equal:
+          path: spec.template.spec.volumes[0].configMap.name
+          value: agent-config-rendered
+      - equal:
+          path: spec.template.spec.volumes[1].name
+          value: host-log
+      - equal:
+          path: spec.template.spec.volumes[1].hostPath.path
+          value: /var/log
+      - equal:
+          path: spec.template.spec.volumes[1].hostPath.type
+          value: Directory
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0].name
+          value: host-log
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0].mountPath
+          value: /host/var/log
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0].readOnly
+          value: true
+
+  - it: should render env and envFrom values correctly
+    values:
+      - daemonset_values.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[0].valueFrom.fieldRef.fieldPath
+          value: spec.nodeName
+      - equal:
+          path: spec.template.spec.containers[0].env[1].value
+          value: agent-rendered
+      - equal:
+          path: spec.template.spec.containers[0].envFrom[0].configMapRef.name
+          value: agent-config-rendered
+
+  - it: should set annotations correctly
+    values:
+      - daemonset_values.yaml
+    set:
+      daemonsets.node-agent.annotations:
+        test-annotation: test-value
+      daemonsets.node-agent.reloaderEnabled: true
+    asserts:
+      - equal:
+          path: metadata.annotations.test-annotation
+          value: test-value
+      - equal:
+          path: metadata.annotations["reloader.stakater.com/auto"]
+          value: "true"
+
+  - it: should render global values in hostAliases correctly
+    values:
+      - daemonset_values.yaml
+    set:
+      global:
+        agent-ip: "10.0.0.10"
+        domain: "example.com"
+    asserts:
+      - equal:
+          path: spec.template.spec.hostAliases[0].ip
+          value: "10.0.0.10"
+      - equal:
+          path: spec.template.spec.hostAliases[0].hostnames[0]
+          value: "agent.example.com"
+
+  - it: should render strategy alias as updateStrategy
+    values:
+      - daemonset_values.yaml
+    set:
+      daemonsets.node-agent.updateStrategy: null
+      daemonsets.node-agent.strategy:
+        type: OnDelete
+    asserts:
+      - equal:
+          path: spec.updateStrategy.type
+          value: OnDelete
+
+  - it: should not render daemonset if disabled
+    values:
+      - daemonset_values.yaml
+    set:
+      daemonsets.node-agent.disabled: true
+    asserts:
+      - hasDocuments:
+          count: 0

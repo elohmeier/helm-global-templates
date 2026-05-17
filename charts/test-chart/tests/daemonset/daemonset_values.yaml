@@ -1,0 +1,101 @@
+global:
+  render_key: rendered
+
+daemonsets:
+  node-agent:
+    name: node-agent
+    namespace: test-namespace
+    revisionHistoryLimit: 5
+    minReadySeconds: 10
+    updateStrategy:
+      type: RollingUpdate
+      rollingUpdate:
+        maxUnavailable: 1
+    initContainers:
+      init-agent:
+        name: init-agent
+        image:
+          registry: docker.io
+          repository: busybox
+          tag: 1.0.0
+        command:
+          - /bin/sh
+          - -c
+          - "echo 'agent initialized'"
+        envFrom:
+          - configMapRef:
+              name: init-agent-config-{{ global.render_key }}
+        volumeMounts:
+          - name: config-volume
+            mountPath: /config
+    imagePullSecrets:
+      - name: my-secret
+    containers:
+      agent:
+        name: agent
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+        image:
+          registry: docker.io
+          repository: busybox
+          tag: 1.0.0
+        imagePullPolicy: Always
+        ports:
+          - containerPort: 9100
+        env:
+          - name: NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          - name: CONFIG_NAME
+            value: agent-{{ global.render_key }}
+        envFrom:
+          - configMapRef:
+              name: agent-config-{{ global.render_key }}
+        volumeMounts:
+          host-log:
+            name: host-log
+            mountPath: /host/var/log
+            readOnly: true
+        resources:
+          limits:
+            cpu: 500m
+            memory: 256Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 9100
+          initialDelaySeconds: 10
+    volumes:
+      host-log:
+        name: host-log
+        hostPath:
+          path: /var/log
+          type: Directory
+      config-volume:
+        name: config-volume
+        configMap:
+          name: agent-config-{{ global.render_key }}
+          items:
+            - key: config.yaml
+              path: config.yaml
+    securityContext:
+      runAsNonRoot: true
+    serviceAccountName: agent-sa
+    nodeSelector:
+      kubernetes.io/os: linux
+    tolerations:
+      - key: dedicated
+        operator: Equal
+        value: node-agent
+        effect: NoSchedule
+    hostAliases:
+      - ip: "{{ global.agent-ip }}"
+        hostnames:
+          - "agent.{{ global.domain }}"
+    enableServiceLinks: false
+    terminationGracePeriodSeconds: 30

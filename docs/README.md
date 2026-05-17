@@ -3,6 +3,7 @@
 ## Resources
 
 - [Deployment](https://github.com/XMCyber/helm-global-templates/blob/master/docs/resources/deployment.md)
+- [DaemonSet](https://github.com/XMCyber/helm-global-templates/blob/master/docs/resources/daemonset.md)
 - [CronJob](https://github.com/XMCyber/helm-global-templates/blob/master/docs/resources/cronjob.md)
 - [Job](https://github.com/XMCyber/helm-global-templates/blob/master/docs/resources/job.md)
 - [Statefulset](https://github.com/XMCyber/helm-global-templates/blob/master/docs/resources/statefulset.md)

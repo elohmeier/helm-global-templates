@@ -23,6 +23,7 @@ exports:
       labels: {}
       annotations: {}
 
+    daemonset_defaults: *microservice_defaults
     deployment_defaults: *microservice_defaults
     statefuleset_defaults: *microservice_defaults
 
