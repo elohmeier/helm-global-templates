@@ -9,6 +9,7 @@
 - [Statefulset](https://github.com/XMCyber/helm-global-templates/blob/master/docs/resources/statefulset.md)
 - [Service](https://github.com/XMCyber/helm-global-templates/blob/master/docs/resources/service.md)
 - [Cofigmap](https://github.com/XMCyber/helm-global-templates/blob/master/docs/resources/configmap.md)
+- [PersistentVolumeClaim](https://github.com/XMCyber/helm-global-templates/blob/master/docs/resources/pvc.md)
 - [Ingress](https://github.com/XMCyber/helm-global-templates/blob/master/docs/resources/ingress.md)
 - [Namespace](https://github.com/XMCyber/helm-global-templates/blob/master/docs/resources/namespace.md)
 - [Secret](https://github.com/XMCyber/helm-global-templates/blob/master/docs/resources/secret.md)

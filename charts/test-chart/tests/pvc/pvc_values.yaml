@@ -1,0 +1,11 @@
+pvcs:
+  application-data:
+    name: app-data
+    namespace: test-namespace
+    accessModes:
+      - ReadWriteOnce
+    storageClassName: fast
+    volumeMode: Filesystem
+    resources:
+      requests:
+        storage: 10Gi

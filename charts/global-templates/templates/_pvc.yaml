@@ -1,0 +1,44 @@
+{{/*
+Copyright (C) 2026 XM Cyber
+Author: Devops Infra Team
+*/}}
+
+{{- define "global-templates.pvc" -}}
+{{- $global_values := .Values.global | default dict }}
+{{- $default_values := .Values.pvc_defaults | default dict }}
+{{- $common_defaults := .Values.common_defaults | default dict }}
+{{- $releaseNamespace := .Release.Namespace | default "default" }}
+{{- range $key, $claim := .pvcs }}
+{{- if not $claim.disabled }}
+{{- $name := $claim.name | default "" }}
+{{- if and (empty $name) (kindIs "string" $key) }}
+  {{- $name = $key }}
+{{- end }}
+{{- $namespace := $claim.namespace | default $releaseNamespace }}
+{{- $specFields := dict }}
+{{- if hasKey $claim "spec" }}
+  {{- $specFields = deepCopy ($claim.spec | default dict) }}
+{{- else }}
+  {{- $specFields = omit $claim "name" "namespace" "labels" "annotations" "disabled" }}
+{{- end }}
+{{- $specFields = mergeOverwrite (deepCopy $default_values) $specFields }}
+{{- $_ := required "accessModes is required for pvc" (get $specFields "accessModes") }}
+{{- $_ := required "resources is required for pvc" (get $specFields "resources") }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ required "Name is required for pvc" $name }}
+  namespace: {{ include "helpers.prefixNamespace" (dict "namespace" $namespace "global" $global_values) }}
+  labels: {{- include "helpers.labels" (dict "context" $ "customLabels" $claim.labels "defaultLabels" $common_defaults.labels) | nindent 4 }}
+  {{- if or $claim.annotations $common_defaults.annotations }}
+  annotations:
+    {{- include "helpers.annotations" (dict "context" $ "customAnnotations" $claim.annotations "defaultAnnotations" $common_defaults.annotations) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- $specYaml := toYaml $specFields }}
+  {{- $rendered := include "helpers.renderGlobalIfExists" (dict "value" $specYaml "global" $global_values) }}
+  {{- tpl $rendered $ | nindent 2 }}
+{{- end }}
+{{- end }}
+{{- end }}

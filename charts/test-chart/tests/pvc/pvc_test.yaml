@@ -1,0 +1,212 @@
+suite: Test pvc template
+templates:
+  - template.yaml
+
+tests:
+  - it: should create a basic persistent volume claim
+    values:
+      - pvc_values.yaml
+    asserts:
+      - equal:
+          path: apiVersion
+          value: v1
+      - equal:
+          path: kind
+          value: PersistentVolumeClaim
+      - equal:
+          path: metadata.name
+          value: app-data
+      - equal:
+          path: metadata.namespace
+          value: test-namespace
+      - equal:
+          path: spec.accessModes[0]
+          value: ReadWriteOnce
+      - equal:
+          path: spec.resources.requests.storage
+          value: 10Gi
+      - equal:
+          path: spec.storageClassName
+          value: fast
+      - equal:
+          path: spec.volumeMode
+          value: Filesystem
+
+  - it: should apply labels and annotations
+    values:
+      - pvc_values.yaml
+    set:
+      common_defaults.labels:
+        managed-by: global-templates
+      pvcs.application-data.labels:
+        component: storage
+      pvcs.application-data.annotations:
+        helm.sh/resource-policy: keep
+    asserts:
+      - equal:
+          path: metadata.labels.managed-by
+          value: global-templates
+      - equal:
+          path: metadata.labels.component
+          value: storage
+      - equal:
+          path: metadata.annotations["helm.sh/resource-policy"]
+          value: keep
+
+  - it: should use the map key as the claim name
+    values:
+      - pvc_values.yaml
+    set:
+      pvcs.application-data.name: null
+    asserts:
+      - equal:
+          path: metadata.name
+          value: application-data
+
+  - it: should use and prefix the release namespace by default
+    values:
+      - pvc_values.yaml
+    set:
+      global.nsPrefix: dev
+      pvcs.application-data.namespace: null
+    asserts:
+      - equal:
+          path: metadata.namespace
+          value: dev-NAMESPACE
+
+  - it: should render all native optional spec fields
+    values:
+      - pvc_values.yaml
+    set:
+      pvcs.application-data.selector:
+        matchLabels:
+          disk: nvme
+      pvcs.application-data.volumeName: app-volume
+      pvcs.application-data.dataSourceRef:
+        apiGroup: snapshot.storage.k8s.io
+        kind: VolumeSnapshot
+        name: app-snapshot
+      pvcs.application-data.volumeAttributesClassName: encrypted
+    asserts:
+      - equal:
+          path: spec.selector.matchLabels.disk
+          value: nvme
+      - equal:
+          path: spec.volumeName
+          value: app-volume
+      - equal:
+          path: spec.dataSourceRef.apiGroup
+          value: snapshot.storage.k8s.io
+      - equal:
+          path: spec.dataSourceRef.kind
+          value: VolumeSnapshot
+      - equal:
+          path: spec.dataSourceRef.name
+          value: app-snapshot
+      - equal:
+          path: spec.volumeAttributesClassName
+          value: encrypted
+
+  - it: should render a raw spec
+    set:
+      pvcs:
+        block-data:
+          namespace: storage
+          spec:
+            accessModes:
+              - ReadWriteOnce
+            volumeMode: Block
+            resources:
+              requests:
+                storage: 50Gi
+    asserts:
+      - equal:
+          path: metadata.name
+          value: block-data
+      - equal:
+          path: spec.volumeMode
+          value: Block
+      - equal:
+          path: spec.resources.requests.storage
+          value: 50Gi
+
+  - it: should merge pvc defaults while preserving explicit empty values
+    set:
+      pvc_defaults:
+        accessModes:
+          - ReadWriteMany
+        storageClassName: standard
+        volumeMode: Filesystem
+      pvcs:
+        static-data:
+          namespace: storage
+          storageClassName: ""
+          resources:
+            requests:
+              storage: 5Gi
+    asserts:
+      - equal:
+          path: spec.accessModes[0]
+          value: ReadWriteMany
+      - equal:
+          path: spec.storageClassName
+          value: ""
+      - equal:
+          path: spec.volumeMode
+          value: Filesystem
+
+  - it: should render global placeholders in the spec and annotations
+    set:
+      global:
+        storage:
+          size: 25Gi
+        environment: production
+      pvcs:
+        global-data:
+          namespace: storage
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: "{{global.storage.size}}"
+          annotations:
+            environment: "{{global.environment}}"
+    asserts:
+      - equal:
+          path: spec.resources.requests.storage
+          value: 25Gi
+      - equal:
+          path: metadata.annotations.environment
+          value: production
+
+  - it: should not render a disabled claim
+    values:
+      - pvc_values.yaml
+    set:
+      pvcs.application-data.disabled: true
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should fail when access modes are missing
+    set:
+      pvcs:
+        invalid:
+          namespace: storage
+          resources:
+            requests:
+              storage: 1Gi
+    asserts:
+      - failedTemplate:
+          errorMessage: accessModes is required for pvc
+
+  - it: should fail when resources are missing
+    set:
+      pvcs:
+        invalid:
+          namespace: storage
+          accessModes:
+            - ReadWriteOnce
+    asserts:
+      - failedTemplate:
+          errorMessage: resources is required for pvc
